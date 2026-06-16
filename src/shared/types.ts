@@ -48,3 +48,12 @@ export interface CreateProfileInput {
   name: string
   avatar: string
 }
+
+export interface Channel {
+  id: string
+  name: string
+  icon: string
+  type: 'auto' | 'custom'
+  sortOrder: number
+  seriesIds: string[]
+}

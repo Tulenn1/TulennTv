@@ -1,5 +1,5 @@
 import { IPC } from '../shared/ipc-channels'
-import { Profile, Series, SeriesWithEpisodes, Episode, WatchProgress, CreateProfileInput } from '../shared/types'
+import { Profile, Series, SeriesWithEpisodes, Episode, WatchProgress, CreateProfileInput, Channel } from '../shared/types'
 
 const isElectron = !!window.electronAPI
 
@@ -142,6 +142,44 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: dirPath }),
+    })
+  },
+
+  // Channels
+  async getChannels(): Promise<Channel[]> {
+    if (isElectron) return ipcInvoke(IPC.GET_CHANNELS)
+    return fetchApi('/api/channels')
+  },
+
+  async createChannel(name: string, icon: string, seriesIds: string[]): Promise<Channel> {
+    if (isElectron) return ipcInvoke(IPC.CREATE_CHANNEL, name, icon, seriesIds)
+    return fetchApi('/api/channels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, icon, seriesIds }),
+    })
+  },
+
+  async updateChannel(id: string, name: string, icon: string, seriesIds: string[]): Promise<void> {
+    if (isElectron) return ipcInvoke(IPC.UPDATE_CHANNEL, id, name, icon, seriesIds)
+    await fetchApi(`/api/channels/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, icon, seriesIds }),
+    })
+  },
+
+  async deleteChannel(id: string): Promise<void> {
+    if (isElectron) return ipcInvoke(IPC.DELETE_CHANNEL, id)
+    await fetchApi(`/api/channels/${id}`, { method: 'DELETE' })
+  },
+
+  async reorderChannels(ids: string[]): Promise<void> {
+    if (isElectron) return ipcInvoke(IPC.REORDER_CHANNELS, ids)
+    await fetchApi('/api/channels/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
     })
   },
 }

@@ -8,6 +8,7 @@ let profiles = [{ id: '1', name: 'Demo', avatar: '😎', createdAt: new Date().t
 let activeProfile = '1'
 let favorites = {}
 let progress = {}
+let customChannels = []
 
 function json(res, data, status = 200) {
   res.writeHead(status, {

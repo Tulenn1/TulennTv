@@ -33,4 +33,11 @@ export const IPC = {
   // Folders
   GET_FOLDERS: 'folders:get-all',
   DELETE_FOLDER: 'folders:delete',
+
+  // Channels
+  GET_CHANNELS: 'channels:get-all',
+  CREATE_CHANNEL: 'channels:create',
+  UPDATE_CHANNEL: 'channels:update',
+  DELETE_CHANNEL: 'channels:delete',
+  REORDER_CHANNELS: 'channels:reorder',
 } as const

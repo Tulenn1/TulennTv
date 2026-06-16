@@ -81,9 +81,12 @@ export function importScanResult(result: ScannerResult): void {
   transaction()
 }
 
+import { syncAutoChannels } from './channels'
+
 export function scanAndImport(dirPath: string, type?: string): SeriesWithEpisodes[] {
   const result = scanDirectory(dirPath, type)
   importScanResult(result)
+  syncAutoChannels()
   const ids = result.series.map(s => s.id)
   return ids.map(id => getSeriesWithEpisodes(id)).filter(Boolean) as SeriesWithEpisodes[]
 }

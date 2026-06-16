@@ -4,6 +4,8 @@ import { getAllSeries, getSeriesWithEpisodes, getEpisode, getNextEpisode, scanAn
 import { getProfiles, createProfile, deleteProfile, getActiveProfile, setActiveProfile } from './profiles'
 import { toggleFavorite, getFavorites } from './favorites'
 import { saveProgress, getProgress } from './progress'
+import { getAllChannels, getOrCreateAutoChannels, syncAutoChannels, createChannel, updateChannel, deleteChannel, reorderChannels } from './channels'
+import type { Channel } from './channels'
 
 export function registerIpcHandlers(): void {
   ipcMain.handle(IPC.GET_LIBRARY, (_event, type?: string, search?: string, profileId?: string) => {
@@ -73,5 +75,27 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IPC.DELETE_FOLDER, (_event, dirPath: string) => {
     return deleteByPath(dirPath)
+  })
+
+  ipcMain.handle(IPC.GET_CHANNELS, () => {
+    getOrCreateAutoChannels()
+    syncAutoChannels()
+    return getAllChannels()
+  })
+
+  ipcMain.handle(IPC.CREATE_CHANNEL, (_event, name: string, icon: string, seriesIds: string[]) => {
+    return createChannel(name, icon, seriesIds)
+  })
+
+  ipcMain.handle(IPC.UPDATE_CHANNEL, (_event, id: string, name: string, icon: string, seriesIds: string[]) => {
+    updateChannel(id, name, icon, seriesIds)
+  })
+
+  ipcMain.handle(IPC.DELETE_CHANNEL, (_event, id: string) => {
+    deleteChannel(id)
+  })
+
+  ipcMain.handle(IPC.REORDER_CHANNELS, (_event, ids: string[]) => {
+    reorderChannels(ids)
   })
 }
