@@ -1,1 +1,0 @@
-/home/Tulenn/Programas/zapping-app/agents-stack/skills/python/SKILL.md

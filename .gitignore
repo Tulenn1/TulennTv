@@ -5,3 +5,8 @@ release/
 *.log
 .DS_Store
 Thumbs.db
+# opencode agents
+AGENTS.md
+agents-stack/
+.opencode/
+opencode.json
