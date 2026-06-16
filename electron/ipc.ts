@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { IPC } from '../src/shared/ipc-channels'
-import { getAllSeries, getSeriesWithEpisodes, getEpisode, getNextEpisode, scanAndImport } from './library'
+import { getAllSeries, getSeriesWithEpisodes, getEpisode, getNextEpisode, scanAndImport, getScannedFolders, deleteByPath } from './library'
 import { getProfiles, createProfile, deleteProfile, getActiveProfile, setActiveProfile } from './profiles'
 import { toggleFavorite, getFavorites } from './favorites'
 import { saveProgress, getProgress } from './progress'
@@ -65,5 +65,13 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IPC.GET_PROGRESS, (_event, profileId: string, episodeId: string) => {
     return getProgress(profileId, episodeId)
+  })
+
+  ipcMain.handle(IPC.GET_FOLDERS, () => {
+    return getScannedFolders()
+  })
+
+  ipcMain.handle(IPC.DELETE_FOLDER, (_event, dirPath: string) => {
+    return deleteByPath(dirPath)
   })
 }

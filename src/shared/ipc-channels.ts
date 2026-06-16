@@ -29,4 +29,8 @@ export const IPC = {
   DELETE_PROFILE: 'profiles:delete',
   GET_ACTIVE_PROFILE: 'profiles:get-active',
   SET_ACTIVE_PROFILE: 'profiles:set-active',
+
+  // Folders
+  GET_FOLDERS: 'folders:get-all',
+  DELETE_FOLDER: 'folders:delete',
 } as const

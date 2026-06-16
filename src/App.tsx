@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useApp } from './context/AppContext'
 import ProfileSelector from './pages/ProfileSelector'
 import Library from './pages/Library'
 import Zapper from './pages/Zapper'
 import Guide from './pages/Guide'
+import Folders from './pages/Folders'
 import TvConnect from './pages/TvConnect'
 import FaqModal from './components/FaqModal'
 
@@ -17,6 +18,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { profile, loading } = useApp()
+  const location = useLocation()
+  const isZapping = location.pathname === '/zapper'
   const [faqOpen, setFaqOpen] = useState(false)
 
   if (loading) {
@@ -34,11 +37,12 @@ export default function App() {
         <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
         <Route path="/zapper" element={<ProtectedRoute><Zapper /></ProtectedRoute>} />
         <Route path="/guide" element={<ProtectedRoute><Guide /></ProtectedRoute>} />
+        <Route path="/folders" element={<ProtectedRoute><Folders /></ProtectedRoute>} />
         <Route path="/tv-connect" element={<TvConnect />} />
         <Route path="*" element={<Navigate to={profile ? '/library' : '/profiles'} replace />} />
       </Routes>
 
-      {profile && (
+      {profile && !isZapping && (
         <button style={styles.faqBtn} onClick={() => setFaqOpen(true)} title="Ayuda">?</button>
       )}
 

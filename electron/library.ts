@@ -87,3 +87,23 @@ export function scanAndImport(dirPath: string, type?: string): SeriesWithEpisode
   const ids = result.series.map(s => s.id)
   return ids.map(id => getSeriesWithEpisodes(id)).filter(Boolean) as SeriesWithEpisodes[]
 }
+
+export function getScannedFolders(): { path: string; seriesCount: number }[] {
+  const db = getDb()
+  const rows = db.prepare('SELECT DISTINCT path FROM series').all() as { path: string }[]
+  const grouped = new Map<string, number>()
+  for (const { path } of rows) {
+    const dir = path.substring(0, path.lastIndexOf('/')) || path
+    grouped.set(dir, (grouped.get(dir) || 0) + 1)
+  }
+  return Array.from(grouped.entries())
+    .map(([path, seriesCount]) => ({ path, seriesCount }))
+    .sort((a, b) => b.seriesCount - a.seriesCount)
+}
+
+export function deleteByPath(dirPath: string): number {
+  const db = getDb()
+  db.prepare("DELETE FROM episodes WHERE series_id IN (SELECT id FROM series WHERE path LIKE ?)").run(dirPath + '%')
+  const info = db.prepare("DELETE FROM series WHERE path LIKE ?").run(dirPath + '%')
+  return info.changes
+}

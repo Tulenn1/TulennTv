@@ -69,6 +69,7 @@ export default function Library() {
           <button style={styles.navBtnActive}>Biblioteca</button>
           <button style={styles.navBtn} onClick={() => navigate('/zapper')}>Zapping</button>
           <button style={styles.navBtn} onClick={() => navigate('/guide')}>Guía</button>
+          <button style={styles.navBtn} onClick={() => navigate('/folders')}>Carpetas</button>
         </div>
         <div style={{ marginTop: 'auto', fontSize: 12, color: '#555' }}>
           {profile?.name} {profile?.avatar}

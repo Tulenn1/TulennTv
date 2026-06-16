@@ -129,4 +129,19 @@ export const api = {
     if (isElectron) return ipcInvoke(IPC.GET_PROGRESS, profileId, episodeId)
     return fetchApi(`/api/progress/${profileId}/${episodeId}`)
   },
+
+  // Folders
+  async getFolders(): Promise<{ path: string; seriesCount: number }[]> {
+    if (isElectron) return ipcInvoke(IPC.GET_FOLDERS)
+    return fetchApi('/api/folders')
+  },
+
+  async deleteFolder(dirPath: string): Promise<number> {
+    if (isElectron) return ipcInvoke(IPC.DELETE_FOLDER, dirPath)
+    return fetchApi('/api/folders/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: dirPath }),
+    })
+  },
 }
