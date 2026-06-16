@@ -83,21 +83,34 @@ export function scanDirectory(dirPath: string, forceType?: string): ScannerResul
   const seriesId = uuid()
   const episodes: Episode[] = []
 
-  for (const file of videoFiles) {
+  const parsed = videoFiles.map((file, i) => {
     const filePath = path.join(dirPath, file)
-    const { season, episode, title } = parseEpisodeInfo(file)
+    const info = parseEpisodeInfo(file)
     let stats: fs.Stats | null = null
     try { stats = fs.statSync(filePath) } catch {}
-    const duration = stats?.size ? Math.round(stats.size / 100000) : 0
+    return { ...info, file, filePath, duration: stats?.size ? Math.round(stats.size / 100000) : 0, index: i }
+  })
 
+  const allSameEpisode = parsed.every(p => p.episode === parsed[0].episode)
+  const allSameSeason = parsed.every(p => p.season === parsed[0].season)
+  const hasDuplicates = new Set(parsed.map(p => `${p.season}-${p.episode}`)).size < parsed.length
+
+  if ((allSameEpisode && allSameSeason && parsed.length > 1) || hasDuplicates) {
+    for (let i = 0; i < parsed.length; i++) {
+      parsed[i].season = 1
+      parsed[i].episode = i + 1
+    }
+  }
+
+  for (const p of parsed) {
     episodes.push({
       id: uuid(),
       seriesId,
-      title,
-      path: filePath,
-      season,
-      episode,
-      duration,
+      title: p.title,
+      path: p.filePath,
+      season: p.season,
+      episode: p.episode,
+      duration: p.duration,
     })
   }
 
