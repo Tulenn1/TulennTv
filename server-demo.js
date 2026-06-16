@@ -119,51 +119,23 @@ const server = http.createServer(async (req, res) => {
       return json(res, s)
     }
 
-    // GET /api/channels
-    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'channels' && !parts[2]) {
-      const typeMap = { anime: 'Anime', series: 'Series', movie: 'Películas' }
-      const typeIcon = { anime: '🎬', series: '📺', movie: '🎥' }
-      const channels = []
-      for (const [type, name] of Object.entries(typeMap)) {
-        const ids = library.filter(s => s.type === type).map(s => s.id)
-        channels.push({ id: 'auto-' + type, name, icon: typeIcon[type], type: 'auto', sortOrder: channels.length, seriesIds: ids })
+    // GET /api/folders
+    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'folders' && !parts[2]) {
+      const grouped = {}
+      for (const s of library) {
+        const dir = s.path.substring(0, s.path.lastIndexOf('/')) || s.path
+        grouped[dir] = (grouped[dir] || 0) + 1
       }
-      for (const ch of customChannels) {
-        channels.push(ch)
-      }
-      return json(res, channels)
+      const result = Object.entries(grouped).map(([path, count]) => ({ path, seriesCount: count }))
+      return json(res, result)
     }
 
-    // POST /api/channels
-    if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'channels' && !parts[2]) {
+    // POST /api/folders/delete
+    if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'folders' && parts[2] === 'delete') {
       const b = await body(req)
-      const ch = { id: 'custom-' + Date.now(), name: b.name, icon: b.icon || '📺', type: 'custom', sortOrder: customChannels.length, seriesIds: b.seriesIds || [] }
-      customChannels.push(ch)
-      return json(res, ch, 201)
-    }
-
-    // PUT /api/channels/:id
-    if (req.method === 'PUT' && parts[0] === 'api' && parts[1] === 'channels' && parts[2]) {
-      const b = await body(req)
-      const ch = customChannels.find(c => c.id === parts[2])
-      if (ch) { ch.name = b.name; ch.icon = b.icon; ch.seriesIds = b.seriesIds }
-      return json(res, { success: true })
-    }
-
-    // DELETE /api/channels/:id
-    if (req.method === 'DELETE' && parts[0] === 'api' && parts[1] === 'channels' && parts[2]) {
-      customChannels = customChannels.filter(c => c.id !== parts[2])
-      return json(res, { success: true })
-    }
-
-    // POST /api/channels/reorder
-    if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'channels' && parts[2] === 'reorder') {
-      const b = await body(req)
-      for (let i = 0; i < b.ids.length; i++) {
-        const ch = [...[].concat(...Object.values(typeMap).map(() => [])), ...customChannels].find(c => c.id === b.ids[i])
-        if (ch) ch.sortOrder = i
-      }
-      return json(res, { success: true })
+      const before = library.length
+      library = library.filter(s => !s.path.startsWith(b.path))
+      return json(res, { deleted: before - library.length })
     }
 
     // POST /api/scanner

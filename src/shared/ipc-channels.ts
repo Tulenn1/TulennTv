@@ -30,6 +30,10 @@ export const IPC = {
   GET_ACTIVE_PROFILE: 'profiles:get-active',
   SET_ACTIVE_PROFILE: 'profiles:set-active',
 
+  // Folders
+  GET_FOLDERS: 'folders:get-all',
+  DELETE_FOLDER: 'folders:delete',
+
   // Channels
   GET_CHANNELS: 'channels:get-all',
   CREATE_CHANNEL: 'channels:create',
