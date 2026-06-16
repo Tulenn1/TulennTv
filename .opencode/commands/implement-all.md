@@ -1,0 +1,1 @@
+/home/Tulenn/Programas/zapping-app/agents-stack/commands/implement-all.md
