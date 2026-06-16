@@ -3,8 +3,6 @@ import { Profile, Series, SeriesWithEpisodes, Episode, WatchProgress, CreateProf
 
 const isElectron = !!window.electronAPI
 
-const BASE_URL = 'http://localhost:3456'
-
 async function ipcInvoke<T>(channel: string, ...args: unknown[]): Promise<T> {
   if (isElectron) {
     return window.electronAPI!.invoke(channel, ...args) as Promise<T>
@@ -13,13 +11,13 @@ async function ipcInvoke<T>(channel: string, ...args: unknown[]): Promise<T> {
 }
 
 async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${url}`, options)
+  const res = await fetch(url, options)
   if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json()
 }
 
 export function selectFolderWeb(): Promise<string | null> {
-  const path = window.prompt('Ingresá la ruta de la carpeta a escanear:')
+  const path = window.prompt('Ingresá la ruta de la carpeta a escanear (ej: /mnt/c/Users/Benja/Downloads):')
   return Promise.resolve(path || null)
 }
 
