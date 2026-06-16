@@ -39,9 +39,7 @@ export default function App() {
       </Routes>
 
       {profile && (
-        <button style={styles.faqBtn} onClick={() => setFaqOpen(true)} title="Ayuda">
-          ?
-        </button>
+        <button style={styles.faqBtn} onClick={() => setFaqOpen(true)} title="Ayuda">?</button>
       )}
 
       <FaqModal open={faqOpen} onClose={() => setFaqOpen(false)} />

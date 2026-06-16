@@ -12,6 +12,7 @@ export default function Library() {
   const [filter, setFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [scanPath, setScanPath] = useState('')
+  const [scanType, setScanType] = useState('auto')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -39,7 +40,8 @@ export default function Library() {
     setLoading(true)
     setError('')
     try {
-      const result = await api.scanDirectory(dir)
+      const type = scanType === 'auto' ? undefined : scanType
+      await api.scanDirectory(dir, type)
       setScanPath('')
       const count = await loadLibrary()
       if (count === 0) setError('No se encontraron archivos de video en esa ruta. Formatos soportados: .mp4, .mkv, .avi, .mov, .webm')
@@ -108,6 +110,16 @@ export default function Library() {
             onChange={e => setScanPath(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleScan()}
           />
+          <select
+            value={scanType}
+            onChange={e => setScanType(e.target.value)}
+            style={styles.typeSelect}
+          >
+            <option value="auto">Auto</option>
+            <option value="anime">Anime</option>
+            <option value="series">Serie</option>
+            <option value="movie">Película</option>
+          </select>
           <button style={styles.scanBtn} onClick={() => handleScan()}>Escanear</button>
         </div>
 
@@ -155,6 +167,10 @@ const styles: Record<string, React.CSSProperties> = {
   filterActive: { padding: '6px 14px', background: '#e50914', color: '#fff', borderRadius: 20, fontSize: 13, fontWeight: 600 },
   scanBar: { display: 'flex', gap: 8, flexWrap: 'wrap' },
   folderBtn: { padding: '8px 18px', background: '#1f1f1f', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14, border: '1px solid #333', whiteSpace: 'nowrap' as const },
+  typeSelect: {
+    padding: '8px 12px', background: '#1f1f1f', border: '1px solid #333',
+    borderRadius: 8, color: '#fff', fontSize: 14, cursor: 'pointer',
+  },
   scanBtn: { padding: '8px 20px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 },
   error: { padding: '10px 16px', background: '#2a1010', border: '1px solid #e50914', borderRadius: 8, color: '#f88', fontSize: 13 },

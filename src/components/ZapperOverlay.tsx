@@ -7,11 +7,12 @@ interface Props {
   channelNumber: number
   totalChannels: number
   favorite?: boolean
+  tvMode?: boolean
 }
 
 export default function ZapperOverlay({
   visible, channelName, episodeTitle, season, episode,
-  channelNumber, totalChannels, favorite,
+  channelNumber, totalChannels, favorite, tvMode,
 }: Props) {
   return (
     <div style={{
@@ -25,7 +26,10 @@ export default function ZapperOverlay({
           <span style={styles.channelName}>{channelName}</span>
           {favorite && <span style={styles.star}>★</span>}
         </div>
-        <div style={styles.channelCount}>{channelNumber} / {totalChannels}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {tvMode && <span style={styles.tvBadge}>TV</span>}
+          <span style={styles.channelCount}>{channelNumber} / {totalChannels}</span>
+        </div>
       </div>
       <div style={styles.bottomInfo}>
         <div style={styles.episodeInfo}>
@@ -50,6 +54,7 @@ const styles: Record<string, React.CSSProperties> = {
   channelName: { fontSize: 22, fontWeight: 700, textShadow: '0 2px 8px rgba(0,0,0,0.8)' },
   star: { fontSize: 18, color: '#ffd700' },
   channelCount: { fontSize: 13, color: 'rgba(255,255,255,0.7)', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: 4 },
+  tvBadge: { padding: '2px 8px', background: '#e50914', borderRadius: 4, fontSize: 11, fontWeight: 700, letterSpacing: 1 },
   bottomInfo: {},
   episodeInfo: { display: 'flex', flexDirection: 'column', gap: 2 },
   season: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 600 },

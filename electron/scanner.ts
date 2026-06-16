@@ -47,15 +47,7 @@ function parseEpisodeInfo(filename: string): { season: number; episode: number; 
   return { season: 1, episode: 1, title: name }
 }
 
-function detectType(dirName: string): 'anime' | 'series' | 'movie' {
-  const lower = dirName.toLowerCase()
-  if (lower.includes('anime') || /[\u3040-\u30ff\u4e00-\u9fff]/.test(dirName)) {
-    return 'anime'
-  }
-  return 'series'
-}
-
-export function scanDirectory(dirPath: string): ScannerResult {
+export function scanDirectory(dirPath: string, forceType?: string): ScannerResult {
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Directory not found: ${dirPath}`)
   }
@@ -79,7 +71,7 @@ export function scanDirectory(dirPath: string): ScannerResult {
 
     for (const subdir of subdirs) {
       const subPath = path.join(dirPath, subdir)
-      const result = scanDirectory(subPath)
+      const result = scanDirectory(subPath, forceType)
       allSeries.push(...result.series)
       allEpisodes.push(...result.episodes)
     }
@@ -91,28 +83,48 @@ export function scanDirectory(dirPath: string): ScannerResult {
   const seriesId = uuid()
   const episodes: Episode[] = []
 
-  for (const file of videoFiles) {
+  const parsed = videoFiles.map((file, i) => {
     const filePath = path.join(dirPath, file)
-    const { season, episode, title } = parseEpisodeInfo(file)
+    const info = parseEpisodeInfo(file)
     let stats: fs.Stats | null = null
     try { stats = fs.statSync(filePath) } catch {}
-    const duration = stats?.size ? Math.round(stats.size / 100000) : 0
+    return { ...info, file, filePath, duration: stats?.size ? Math.round(stats.size / 100000) : 0, index: i }
+  })
 
+  const allSameEpisode = parsed.every(p => p.episode === parsed[0].episode)
+  const allSameSeason = parsed.every(p => p.season === parsed[0].season)
+  const hasDuplicates = new Set(parsed.map(p => `${p.season}-${p.episode}`)).size < parsed.length
+
+  if ((allSameEpisode && allSameSeason && parsed.length > 1) || hasDuplicates) {
+    for (let i = 0; i < parsed.length; i++) {
+      parsed[i].season = 1
+      parsed[i].episode = i + 1
+    }
+  }
+
+  for (const p of parsed) {
     episodes.push({
       id: uuid(),
       seriesId,
-      title,
-      path: filePath,
-      season,
-      episode,
-      duration,
+      title: p.title,
+      path: p.filePath,
+      season: p.season,
+      episode: p.episode,
+      duration: p.duration,
     })
+  }
+
+  function detectType(): 'anime' | 'series' | 'movie' {
+    if (forceType) return forceType as 'anime' | 'series' | 'movie'
+    const lower = dirName.toLowerCase()
+    if (lower.includes('anime') || /[\u3040-\u30ff\u4e00-\u9fff]/.test(dirName)) return 'anime'
+    return 'series'
   }
 
   const series: Series = {
     id: seriesId,
     title: dirName,
-    type: detectType(dirName),
+    type: detectType(),
     path: dirPath,
     poster: '',
     addedAt: new Date().toISOString(),

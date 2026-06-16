@@ -29,29 +29,46 @@ export default function FaqModal({ open, onClose }: Props) {
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>📂 ¿Cómo agrego mis series?</h3>
             <p style={styles.text}>
-              En la pantalla <strong>Biblioteca</strong>, presioná <strong>"Elegir carpeta"</strong> y seleccioná
-              la carpeta raíz donde tenés tus series organizadas por subcarpetas.
+              En la pantalla <strong>Biblioteca</strong>, escribí la ruta de la carpeta raíz,
+              elegí el tipo de contenido (Anime/Serie/Película) y presioná <strong>"Escanear"</strong>.
+              O usá <strong>"Elegir carpeta"</strong> para seleccionar visualmente.
             </p>
             <pre style={styles.code}>
-{`📁 Carpeta raíz (elegís esta)
- ├── 📁 Naruto/        → se convierte en un canal
+{`📁 Carpeta raíz
+ ├── 📁 Naruto/        → canal 1
  │   ├── Naruto Ep 01.mp4
  │   └── Naruto Ep 02.mkv
- └── 📁 One Piece/     → otro canal
+ └── 📁 One Piece/     → canal 2
      └── One Piece 001.mp4`}
             </pre>
-            <p style={{ ...styles.text, marginTop: 4 }}>
-              💡 <strong>Si usás WSL:</strong> las rutas de Windows se escriben como
-              <code style={styles.inlineCode}> /mnt/c/Users/Benja/Videos</code>
-              (Reemplazá <code style={styles.inlineCode}>C:</code> por <code style={styles.inlineCode}>/mnt/c</code>).
+          </section>
+
+          <section style={styles.section}>
+            <h3 style={styles.sectionTitle}>📝 Nombres de archivos</h3>
+            <p style={styles.text}>
+              El escáner detecta el número de episodio automáticamente si el archivo sigue
+              alguno de estos patrones:
+            </p>
+            <pre style={styles.code}>
+{`Naruto S01E01.mp4      → Temp 1, Ep 1
+Naruto Ep 05.mp4        → Episodio 5
+Naruto - 12.mkv         → Episodio 12
+naruto-ep01.mp4         → Episodio 1
+Capítulo 7.mp4          → Episodio 7`}
+            </pre>
+            <p style={styles.text}>
+              💡 Si los archivos <strong>no tienen número</strong>, el escáner asigna 1, 2, 3...
+              por orden alfabético. <strong>No es recomendable</strong> — mejor usar nombres
+              con número visible.
             </p>
           </section>
 
           <section style={styles.section}>
-            <h3 style={styles.sectionTitle}>📺 ¿Cómo funciona el zapping?</h3>
+            <h3 style={styles.sectionTitle}>📺 Zapping y Modo TV</h3>
             <p style={styles.text}>
-              Cada serie es un "canal". Usá las flechas del teclado para cambiar entre canales.
-              La reproducción es continua: al terminar un episodio, empieza el siguiente.
+              Cada serie es un "canal". Usá las flechas ← → para cambiar entre canales.
+              En <strong>Modo TV</strong> (tecla <strong>T</strong>) cada canal reproduce
+              un episodio y automáticamente pasa al siguiente canal (round-robin).
             </p>
           </section>
 
@@ -62,6 +79,7 @@ export default function FaqModal({ open, onClose }: Props) {
                 ['← →', 'Cambiar canal'],
                 ['↑', 'Abrir guía de canales'],
                 ['Espacio', 'Play / Pausa'],
+                ['T', 'Alternar modo TV'],
                 ['F', 'Pantalla completa'],
                 ['ESC', 'Volver a biblioteca'],
               ].map(([key, action]) => (
@@ -74,26 +92,29 @@ export default function FaqModal({ open, onClose }: Props) {
           </section>
 
           <section style={styles.section}>
-            <h3 style={styles.sectionTitle}>📱 ¿Cómo lo veo en la Smart TV?</h3>
+            <h3 style={styles.sectionTitle}>💡 WSL (Windows Subsystem for Linux)</h3>
             <p style={styles.text}>
-              Iniciá la app de escritorio, andá a <strong>"Conectar TV"</strong> y abrí la URL que aparece
-              en el navegador de tu Smart TV. Necesitan estar en la misma red.
+              Las rutas de Windows se escriben como rutas Linux:
+            </p>
+            <pre style={styles.code}>
+{`C:\Users\Benja\Videos
+→ /mnt/c/Users/Benja/Videos`}
+            </pre>
+          </section>
+
+          <section style={styles.section}>
+            <h3 style={styles.sectionTitle}>📱 Smart TV</h3>
+            <p style={styles.text}>
+              Iniciá la app de escritorio, andá a <strong>"Conectar TV"</strong> y abrí la URL
+              en el navegador de tu Smart TV.
             </p>
           </section>
 
           <section style={styles.section}>
-            <h3 style={styles.sectionTitle}>👤 ¿Para qué sirven los perfiles?</h3>
+            <h3 style={styles.sectionTitle}>👤 Perfiles</h3>
             <p style={styles.text}>
               Cada perfil tiene su propio historial de reproducción y series favoritas.
-              Ideal si compartís la PC o la TV con otras personas.
-            </p>
-          </section>
-
-          <section style={styles.section}>
-            <h3 style={styles.sectionTitle}>⭐ ¿Cómo marco favoritos?</h3>
-            <p style={styles.text}>
-              En el modo zapping, los favoritos aparecen primero en la guía de canales.
-              Desde la biblioteca podés marcar/desmarcar series como favoritas.
+              Ideal si compartís la PC o la TV.
             </p>
           </section>
         </div>
@@ -132,10 +153,6 @@ const styles: Record<string, React.CSSProperties> = {
   code: {
     background: '#0a0a0a', padding: 10, borderRadius: 6,
     fontSize: 12, color: '#888', lineHeight: 1.5, overflow: 'auto',
-  },
-  inlineCode: {
-    background: '#1f1f1f', padding: '1px 6px', borderRadius: 4,
-    fontSize: 12, color: '#e50914',
   },
   shortcuts: { display: 'flex', flexDirection: 'column', gap: 6 },
   shortcutRow: { display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 },

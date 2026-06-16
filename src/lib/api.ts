@@ -94,12 +94,12 @@ export const api = {
   },
 
   // Scanner
-  async scanDirectory(dirPath: string): Promise<SeriesWithEpisodes[]> {
-    if (isElectron) return ipcInvoke(IPC.SCAN_DIRECTORY, dirPath)
+  async scanDirectory(dirPath: string, type?: string): Promise<SeriesWithEpisodes[]> {
+    if (isElectron) return ipcInvoke(IPC.SCAN_DIRECTORY, dirPath, type)
     return fetchApi('/api/scanner', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: dirPath }),
+      body: JSON.stringify({ path: dirPath, type }),
     })
   },
 

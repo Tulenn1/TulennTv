@@ -30,7 +30,7 @@ function body(req) {
   })
 }
 
-function scanDir(dirPath) {
+function scanDir(dirPath, forceType) {
   if (!fs.existsSync(dirPath)) return { series: [], episodes: [] }
   const items = fs.readdirSync(dirPath)
   const videoExts = new Set(['.mp4','.mkv','.avi','.mov','.webm','.m4v'])
@@ -50,7 +50,7 @@ function scanDir(dirPath) {
     }))
     return {
       series: [{
-        id: seriesId, title: dirName, type: 'series',
+        id: seriesId, title: dirName, type: forceType || 'series',
         path: dirPath, poster: '', addedAt: new Date().toISOString(),
       }],
       episodes,
@@ -64,7 +64,7 @@ function scanDir(dirPath) {
 
   let allSeries = [], allEpisodes = []
   for (const sub of subdirs) {
-    const r = scanDir(path.join(dirPath, sub))
+    const r = scanDir(path.join(dirPath, sub), forceType)
     allSeries.push(...r.series)
     allEpisodes.push(...r.episodes)
   }
@@ -121,7 +121,7 @@ const server = http.createServer(async (req, res) => {
     // POST /api/scanner
     if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'scanner') {
       const b = await body(req)
-      const result = scanDir(b.path)
+      const result = scanDir(b.path, b.type)
       for (const s of result.series) {
         if (!library.find(x => x.path === s.path)) {
           library.push({ ...s, episodes: result.episodes.filter(e => e.seriesId === s.id), favorite: false })
