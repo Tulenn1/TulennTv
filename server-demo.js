@@ -157,6 +157,28 @@ const server = http.createServer(async (req, res) => {
       return json(res, { success: true })
     }
 
+    // GET /api/serve-file — sirve archivos de video por HTTP
+    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'serve-file' && parts[2]) {
+      const filePath = '/' + decodeURIComponent(parts.slice(2).join('/'))
+      if (!fs.existsSync(filePath)) {
+        res.writeHead(404)
+        return res.end('File not found')
+      }
+      const ext = path.extname(filePath).toLowerCase()
+      const mimeTypes = {
+        '.mp4': 'video/mp4', '.mkv': 'video/x-matroska',
+        '.avi': 'video/x-msvideo', '.mov': 'video/quicktime',
+        '.webm': 'video/webm', '.m4v': 'video/mp4',
+      }
+      res.writeHead(200, {
+        'Content-Type': mimeTypes[ext] || 'application/octet-stream',
+        'Content-Length': fs.statSync(filePath).size,
+        'Accept-Ranges': 'bytes',
+      })
+      fs.createReadStream(filePath).pipe(res)
+      return
+    }
+
     json(res, { error: 'Not found' }, 404)
   } catch (err) {
     json(res, { error: String(err) }, 500)
