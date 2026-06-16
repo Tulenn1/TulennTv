@@ -18,7 +18,16 @@ async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json()
 }
 
+export function selectFolderWeb(): Promise<string | null> {
+  const path = window.prompt('Ingresá la ruta de la carpeta a escanear:')
+  return Promise.resolve(path || null)
+}
+
 export const api = {
+  async selectFolder(): Promise<string | null> {
+    if (isElectron) return ipcInvoke('dialog:select-folder')
+    return selectFolderWeb()
+  },
   // Profiles
   async getProfiles(): Promise<Profile[]> {
     if (isElectron) return ipcInvoke(IPC.GET_PROFILES)

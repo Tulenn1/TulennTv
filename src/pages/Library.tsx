@@ -30,11 +30,12 @@ export default function Library() {
 
   useEffect(() => { loadLibrary() }, [loadLibrary])
 
-  const handleScan = async () => {
-    if (!scanPath.trim()) return
+  const handleScan = async (path?: string) => {
+    const dir = path || scanPath.trim()
+    if (!dir) return
     setLoading(true)
     try {
-      await api.scanDirectory(scanPath.trim())
+      await api.scanDirectory(dir)
       setScanPath('')
       await loadLibrary()
     } catch (err) {
@@ -42,6 +43,11 @@ export default function Library() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePickFolder = async () => {
+    const folder = await api.selectFolder()
+    if (folder) handleScan(folder)
   }
 
   const handleSelect = (s: Series) => {
@@ -86,14 +92,18 @@ export default function Library() {
         </div>
 
         <div style={styles.scanBar}>
+          <button style={styles.folderBtn} onClick={handlePickFolder}>
+            📁 Elegir carpeta
+          </button>
+          <span style={{ color: '#555', fontSize: 13, alignSelf: 'center' }}>o</span>
           <input
             style={{ ...styles.searchInput, flex: 1 }}
-            placeholder="Ruta de carpeta a escanear (ej: /media/Anime)"
+            placeholder="Escribí la ruta manualmente (ej: /media/Anime)"
             value={scanPath}
             onChange={e => setScanPath(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleScan()}
           />
-          <button style={styles.scanBtn} onClick={handleScan}>Escanear</button>
+          <button style={styles.scanBtn} onClick={() => handleScan()}>Escanear</button>
         </div>
 
         {loading ? (
@@ -136,7 +146,8 @@ const styles: Record<string, React.CSSProperties> = {
   filters: { display: 'flex', gap: 4 },
   filterBtn: { padding: '6px 14px', background: '#1f1f1f', color: '#a0a0a0', borderRadius: 20, fontSize: 13 },
   filterActive: { padding: '6px 14px', background: '#e50914', color: '#fff', borderRadius: 20, fontSize: 13, fontWeight: 600 },
-  scanBar: { display: 'flex', gap: 8 },
+  scanBar: { display: 'flex', gap: 8, flexWrap: 'wrap' },
+  folderBtn: { padding: '8px 18px', background: '#1f1f1f', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14, border: '1px solid #333', whiteSpace: 'nowrap' as const },
   scanBtn: { padding: '8px 20px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 },
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#a0a0a0' },
