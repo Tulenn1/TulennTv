@@ -67,6 +67,7 @@ export default function Folders() {
           <button style={styles.navBtn} onClick={() => navigate('/library')}>Biblioteca</button>
           <button style={styles.navBtn} onClick={() => navigate('/zapper')}>Zapping</button>
           <button style={styles.navBtn} onClick={() => navigate('/guide')}>Guía</button>
+          <button style={styles.navBtn} onClick={() => navigate('/channels')}>Canales</button>
           <button style={styles.navBtnActive}>Carpetas</button>
         </div>
         <div style={{ marginTop: 'auto', fontSize: 12, color: '#555' }}>

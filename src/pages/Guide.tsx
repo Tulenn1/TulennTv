@@ -54,6 +54,7 @@ export default function Guide() {
           <button style={styles.navBtn} onClick={() => navigate('/library')}>Biblioteca</button>
           <button style={styles.navBtn} onClick={() => navigate('/zapper')}>Zapping</button>
           <button style={styles.navBtnActive}>Guía</button>
+          <button style={styles.navBtn} onClick={() => navigate('/channels')}>Canales</button>
           <button style={styles.navBtn} onClick={() => navigate('/folders')}>Carpetas</button>
         </div>
         <div style={{ marginTop: 'auto', fontSize: 12, color: '#555' }}>
