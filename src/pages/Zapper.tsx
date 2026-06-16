@@ -246,18 +246,6 @@ export default function Zapper() {
         </div>
       )}
 
-      <button
-        onClick={() => navigate('/library')}
-        style={{
-          ...styles.menuBtn,
-          opacity: showControls ? 0.8 : 0,
-          pointerEvents: showControls ? 'auto' as React.CSSProperties['pointerEvents'] : 'none' as React.CSSProperties['pointerEvents'],
-        }}
-        title="Volver al menú (ESC)"
-      >
-        ← Menú
-      </button>
-
       <ZapperOverlay
         visible={showControls}
         channelName={currentChannel?.title || ''}
@@ -284,6 +272,7 @@ export default function Zapper() {
             ? document.exitFullscreen()
             : document.documentElement.requestFullscreen()
         }}
+        onMenu={() => navigate('/library')}
       />
 
       <div style={styles.modeContainer}>
@@ -345,12 +334,6 @@ const styles: Record<string, React.CSSProperties> = {
   modeContainer: {
     position: 'absolute', top: 80, right: 20, zIndex: 100,
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-  },
-  menuBtn: {
-    position: 'absolute', top: 16, left: 16, zIndex: 100,
-    padding: '6px 14px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)',
-    color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-    transition: 'opacity 0.3s',
   },
   tvModeBtn: {
     padding: '6px 14px', border: 'none', color: '#fff', borderRadius: 6,
