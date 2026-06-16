@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import path from 'path'
 import { registerIpcHandlers } from './ipc'
 import { startServer, stopServer } from './server'
@@ -35,6 +35,15 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   registerIpcHandlers()
+
+  ipcMain.handle('dialog:select-folder', async () => {
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ['openDirectory'],
+      title: 'Seleccioná una carpeta de series/anime',
+    })
+    return result.canceled ? null : result.filePaths[0]
+  })
+
   startServer()
   createWindow()
 
