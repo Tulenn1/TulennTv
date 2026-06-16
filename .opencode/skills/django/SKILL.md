@@ -1,0 +1,1 @@
+/home/Tulenn/Programas/zapping-app/agents-stack/skills/django/SKILL.md
