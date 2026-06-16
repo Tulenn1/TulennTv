@@ -1,1 +1,0 @@
-/home/Tulenn/Programas/zapping-app/agents-stack/agents/context-generator.md

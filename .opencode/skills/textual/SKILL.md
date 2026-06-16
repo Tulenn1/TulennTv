@@ -1,1 +1,0 @@
-/home/Tulenn/Programas/zapping-app/agents-stack/skills/textual/SKILL.md
