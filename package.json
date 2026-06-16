@@ -2,6 +2,7 @@
   "name": "tulenntv",
   "version": "0.1.0",
   "description": "TV-like zapping app for local anime/series files",
+  "author": "Tulenn1 <toloplz12@gmail.com>",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
