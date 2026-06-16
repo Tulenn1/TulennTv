@@ -10,6 +10,7 @@ interface Props {
   onSeek: (time: number) => void
   onVolumeChange: (vol: number) => void
   onFullscreen: () => void
+  onMenu?: () => void
 }
 
 function formatTime(s: number): string {
@@ -20,7 +21,7 @@ function formatTime(s: number): string {
 
 export default function PlayerControls({
   visible, playing, currentTime, duration, volume,
-  onPlayPause, onSeek, onVolumeChange, onFullscreen,
+  onPlayPause, onSeek, onVolumeChange, onFullscreen, onMenu,
 }: Props) {
   const progressRef = useRef<HTMLDivElement>(null)
   const [showVolume, setShowVolume] = useState(false)
@@ -39,7 +40,10 @@ export default function PlayerControls({
         <div style={{ ...styles.progressFill, width: `${progress}%` }} />
       </div>
       <div style={styles.buttons}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {onMenu && (
+            <button style={styles.btn} onClick={onMenu} title="Volver al menú (ESC)">←</button>
+          )}
           <button style={styles.btn} onClick={onPlayPause}>
             {playing ? '⏸' : '▶'}
           </button>

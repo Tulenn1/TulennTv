@@ -272,18 +272,24 @@ export default function Zapper() {
             ? document.exitFullscreen()
             : document.documentElement.requestFullscreen()
         }}
+        onMenu={() => navigate('/library')}
       />
 
-      <button
-        style={{
-          ...styles.tvModeBtn,
-          background: tvMode ? '#e50914' : '#333',
-        }}
-        onClick={() => setTvMode(prev => !prev)}
-        title="T: alternar modo programación TV"
-      >
-        {tvMode ? '📺 TV' : '▶ Normal'}
-      </button>
+      <div style={styles.modeContainer}>
+        <button
+          style={{
+            ...styles.tvModeBtn,
+            background: tvMode ? '#e50914' : '#333',
+          }}
+          onClick={() => setTvMode(prev => !prev)}
+          title="T: alternar modo"
+        >
+          {tvMode ? '📺 TV' : '▶ Normal'}
+        </button>
+        <span style={styles.modeHint}>
+          {tvMode ? '1 ep → sig. canal' : 'todos los eps'}
+        </span>
+      </div>
 
       {showGuide && (
         <div style={styles.guideOverlay}>
@@ -325,10 +331,17 @@ const styles: Record<string, React.CSSProperties> = {
   empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a' },
   goBtn: { marginTop: 16, padding: '10px 24px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
   noVideo: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: '#555' },
-  tvModeBtn: {
+  modeContainer: {
     position: 'absolute', top: 80, right: 20, zIndex: 100,
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+  },
+  tvModeBtn: {
     padding: '6px 14px', border: 'none', color: '#fff', borderRadius: 6,
     fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: 0.8,
+  },
+  modeHint: {
+    fontSize: 10, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap' as const,
+    letterSpacing: 0.5,
   },
   guideOverlay: {
     position: 'absolute', top: '10%', left: '10%', right: '10%', bottom: '10%',

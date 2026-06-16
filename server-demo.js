@@ -118,6 +118,25 @@ const server = http.createServer(async (req, res) => {
       return json(res, s)
     }
 
+    // GET /api/folders
+    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'folders' && !parts[2]) {
+      const grouped = {}
+      for (const s of library) {
+        const dir = s.path.substring(0, s.path.lastIndexOf('/')) || s.path
+        grouped[dir] = (grouped[dir] || 0) + 1
+      }
+      const result = Object.entries(grouped).map(([path, count]) => ({ path, seriesCount: count }))
+      return json(res, result)
+    }
+
+    // POST /api/folders/delete
+    if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'folders' && parts[2] === 'delete') {
+      const b = await body(req)
+      const before = library.length
+      library = library.filter(s => !s.path.startsWith(b.path))
+      return json(res, { deleted: before - library.length })
+    }
+
     // POST /api/scanner
     if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'scanner') {
       const b = await body(req)
