@@ -130,6 +130,33 @@ const server = http.createServer(async (req, res) => {
       return json(res, result)
     }
 
+    // GET /api/favorites/:profileId
+    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'favorites' && parts[2]) {
+      return json(res, favorites[parts[2]] || [])
+    }
+
+    // POST /api/favorites/:profileId/:seriesId
+    if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'favorites' && parts[2] && parts[3]) {
+      if (!favorites[parts[2]]) favorites[parts[2]] = []
+      const idx = favorites[parts[2]].indexOf(parts[3])
+      if (idx >= 0) {
+        favorites[parts[2]].splice(idx, 1)
+        return json(res, { isFavorite: false })
+      }
+      favorites[parts[2]].push(parts[3])
+      return json(res, { isFavorite: true })
+    }
+
+    // GET /api/progress/:profileId/:episodeId
+    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'progress' && parts[2] && parts[3]) {
+      return json(res, null)
+    }
+
+    // POST /api/progress
+    if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'progress') {
+      return json(res, { success: true })
+    }
+
     json(res, { error: 'Not found' }, 404)
   } catch (err) {
     json(res, { error: String(err) }, 500)
