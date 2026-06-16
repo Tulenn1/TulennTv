@@ -40,6 +40,11 @@ export default function FaqModal({ open, onClose }: Props) {
  └── 📁 One Piece/     → otro canal
      └── One Piece 001.mp4`}
             </pre>
+            <p style={{ ...styles.text, marginTop: 4 }}>
+              💡 <strong>Si usás WSL:</strong> las rutas de Windows se escriben como
+              <code style={styles.inlineCode}> /mnt/c/Users/Benja/Videos</code>
+              (Reemplazá <code style={styles.inlineCode}>C:</code> por <code style={styles.inlineCode}>/mnt/c</code>).
+            </p>
           </section>
 
           <section style={styles.section}>
@@ -127,6 +132,10 @@ const styles: Record<string, React.CSSProperties> = {
   code: {
     background: '#0a0a0a', padding: 10, borderRadius: 6,
     fontSize: 12, color: '#888', lineHeight: 1.5, overflow: 'auto',
+  },
+  inlineCode: {
+    background: '#1f1f1f', padding: '1px 6px', borderRadius: 4,
+    fontSize: 12, color: '#e50914',
   },
   shortcuts: { display: 'flex', flexDirection: 'column', gap: 6 },
   shortcutRow: { display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 },

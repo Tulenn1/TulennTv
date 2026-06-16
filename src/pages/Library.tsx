@@ -13,16 +13,19 @@ export default function Library() {
   const [search, setSearch] = useState('')
   const [scanPath, setScanPath] = useState('')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const loadLibrary = useCallback(async () => {
-    if (!profile) return
+  const loadLibrary = useCallback(async (): Promise<number> => {
+    if (!profile) return 0
     setLoading(true)
     try {
       const type = filter === 'all' ? undefined : filter
       const list = await api.getLibrary(type, search || undefined, profile.id)
       setSeries(list)
+      return list.length
     } catch (err) {
       console.error('Failed to load library:', err)
+      return 0
     } finally {
       setLoading(false)
     }
@@ -34,12 +37,14 @@ export default function Library() {
     const dir = path || scanPath.trim()
     if (!dir) return
     setLoading(true)
+    setError('')
     try {
-      await api.scanDirectory(dir)
+      const result = await api.scanDirectory(dir)
       setScanPath('')
-      await loadLibrary()
+      const count = await loadLibrary()
+      if (count === 0) setError('No se encontraron archivos de video en esa ruta. Formatos soportados: .mp4, .mkv, .avi, .mov, .webm')
     } catch (err) {
-      console.error('Scan failed:', err)
+      setError(`Error al escanear: ${err}`)
     } finally {
       setLoading(false)
     }
@@ -106,6 +111,8 @@ export default function Library() {
           <button style={styles.scanBtn} onClick={() => handleScan()}>Escanear</button>
         </div>
 
+        {error && <div style={styles.error}>{error}</div>}
+
         {loading ? (
           <div style={styles.loading}>Cargando biblioteca...</div>
         ) : series.length === 0 ? (
@@ -150,6 +157,7 @@ const styles: Record<string, React.CSSProperties> = {
   folderBtn: { padding: '8px 18px', background: '#1f1f1f', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14, border: '1px solid #333', whiteSpace: 'nowrap' as const },
   scanBtn: { padding: '8px 20px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 },
+  error: { padding: '10px 16px', background: '#2a1010', border: '1px solid #e50914', borderRadius: 8, color: '#f88', fontSize: 13 },
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#a0a0a0' },
   empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 },
 }
