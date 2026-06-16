@@ -12,6 +12,7 @@ export default function Library() {
   const [filter, setFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [scanPath, setScanPath] = useState('')
+  const [scanType, setScanType] = useState('auto')
   const [loading, setLoading] = useState(true)
 
   const loadLibrary = useCallback(async () => {
@@ -34,7 +35,8 @@ export default function Library() {
     if (!scanPath.trim()) return
     setLoading(true)
     try {
-      await api.scanDirectory(scanPath.trim())
+      const type = scanType === 'auto' ? undefined : scanType
+      await api.scanDirectory(scanPath.trim(), type)
       setScanPath('')
       await loadLibrary()
     } catch (err) {
@@ -93,6 +95,16 @@ export default function Library() {
             onChange={e => setScanPath(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleScan()}
           />
+          <select
+            value={scanType}
+            onChange={e => setScanType(e.target.value)}
+            style={styles.typeSelect}
+          >
+            <option value="auto">Auto</option>
+            <option value="anime">Anime</option>
+            <option value="series">Serie</option>
+            <option value="movie">Película</option>
+          </select>
           <button style={styles.scanBtn} onClick={handleScan}>Escanear</button>
         </div>
 
@@ -137,6 +149,10 @@ const styles: Record<string, React.CSSProperties> = {
   filterBtn: { padding: '6px 14px', background: '#1f1f1f', color: '#a0a0a0', borderRadius: 20, fontSize: 13 },
   filterActive: { padding: '6px 14px', background: '#e50914', color: '#fff', borderRadius: 20, fontSize: 13, fontWeight: 600 },
   scanBar: { display: 'flex', gap: 8 },
+  typeSelect: {
+    padding: '8px 12px', background: '#1f1f1f', border: '1px solid #333',
+    borderRadius: 8, color: '#fff', fontSize: 14, cursor: 'pointer',
+  },
   scanBtn: { padding: '8px 20px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 },
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#a0a0a0' },

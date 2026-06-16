@@ -81,8 +81,8 @@ export function importScanResult(result: ScannerResult): void {
   transaction()
 }
 
-export function scanAndImport(dirPath: string): SeriesWithEpisodes[] {
-  const result = scanDirectory(dirPath)
+export function scanAndImport(dirPath: string, type?: string): SeriesWithEpisodes[] {
+  const result = scanDirectory(dirPath, type)
   importScanResult(result)
   const ids = result.series.map(s => s.id)
   return ids.map(id => getSeriesWithEpisodes(id)).filter(Boolean) as SeriesWithEpisodes[]

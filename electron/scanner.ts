@@ -47,15 +47,7 @@ function parseEpisodeInfo(filename: string): { season: number; episode: number; 
   return { season: 1, episode: 1, title: name }
 }
 
-function detectType(dirName: string): 'anime' | 'series' | 'movie' {
-  const lower = dirName.toLowerCase()
-  if (lower.includes('anime') || /[\u3040-\u30ff\u4e00-\u9fff]/.test(dirName)) {
-    return 'anime'
-  }
-  return 'series'
-}
-
-export function scanDirectory(dirPath: string): ScannerResult {
+export function scanDirectory(dirPath: string, forceType?: string): ScannerResult {
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Directory not found: ${dirPath}`)
   }
@@ -79,7 +71,7 @@ export function scanDirectory(dirPath: string): ScannerResult {
 
     for (const subdir of subdirs) {
       const subPath = path.join(dirPath, subdir)
-      const result = scanDirectory(subPath)
+      const result = scanDirectory(subPath, forceType)
       allSeries.push(...result.series)
       allEpisodes.push(...result.episodes)
     }
@@ -109,10 +101,17 @@ export function scanDirectory(dirPath: string): ScannerResult {
     })
   }
 
+  function detectType(): 'anime' | 'series' | 'movie' {
+    if (forceType) return forceType as 'anime' | 'series' | 'movie'
+    const lower = dirName.toLowerCase()
+    if (lower.includes('anime') || /[\u3040-\u30ff\u4e00-\u9fff]/.test(dirName)) return 'anime'
+    return 'series'
+  }
+
   const series: Series = {
     id: seriesId,
     title: dirName,
-    type: detectType(dirName),
+    type: detectType(),
     path: dirPath,
     poster: '',
     addedAt: new Date().toISOString(),

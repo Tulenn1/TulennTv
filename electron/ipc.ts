@@ -27,8 +27,8 @@ export function registerIpcHandlers(): void {
     return getNextEpisode(seriesId, season, episode)
   })
 
-  ipcMain.handle(IPC.SCAN_DIRECTORY, (_event, dirPath: string) => {
-    return scanAndImport(dirPath)
+  ipcMain.handle(IPC.SCAN_DIRECTORY, (_event, dirPath: string, type?: string) => {
+    return scanAndImport(dirPath, type)
   })
 
   ipcMain.handle(IPC.GET_PROFILES, () => {
