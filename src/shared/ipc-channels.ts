@@ -29,4 +29,11 @@ export const IPC = {
   DELETE_PROFILE: 'profiles:delete',
   GET_ACTIVE_PROFILE: 'profiles:get-active',
   SET_ACTIVE_PROFILE: 'profiles:set-active',
+
+  // Channels
+  GET_CHANNELS: 'channels:get-all',
+  CREATE_CHANNEL: 'channels:create',
+  UPDATE_CHANNEL: 'channels:update',
+  DELETE_CHANNEL: 'channels:delete',
+  REORDER_CHANNELS: 'channels:reorder',
 } as const
