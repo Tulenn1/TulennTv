@@ -3,8 +3,6 @@ import { Profile, Series, SeriesWithEpisodes, Episode, WatchProgress, CreateProf
 
 const isElectron = !!window.electronAPI
 
-const BASE_URL = 'http://localhost:3456'
-
 async function ipcInvoke<T>(channel: string, ...args: unknown[]): Promise<T> {
   if (isElectron) {
     return window.electronAPI!.invoke(channel, ...args) as Promise<T>
@@ -13,12 +11,28 @@ async function ipcInvoke<T>(channel: string, ...args: unknown[]): Promise<T> {
 }
 
 async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${url}`, options)
+  const res = await fetch(url, options)
   if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json()
 }
 
+export function getVideoUrl(filePath: string): string {
+  if (isElectron) return `file://${filePath}`
+  const normalized = filePath.replace(/\\/g, '/').replace(/^\//, '')
+  const encoded = normalized.split('/').map(encodeURIComponent).join('/')
+  return `/api/serve-file/${encoded}`
+}
+
+export function selectFolderWeb(): Promise<string | null> {
+  const path = window.prompt('Ingresá la ruta de la carpeta a escanear (ej: /mnt/c/Users/Benja/Downloads):')
+  return Promise.resolve(path || null)
+}
+
 export const api = {
+  async selectFolder(): Promise<string | null> {
+    if (isElectron) return ipcInvoke('dialog:select-folder')
+    return selectFolderWeb()
+  },
   // Profiles
   async getProfiles(): Promise<Profile[]> {
     if (isElectron) return ipcInvoke(IPC.GET_PROFILES)

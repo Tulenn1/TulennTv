@@ -130,6 +130,55 @@ const server = http.createServer(async (req, res) => {
       return json(res, result)
     }
 
+    // GET /api/favorites/:profileId
+    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'favorites' && parts[2]) {
+      return json(res, favorites[parts[2]] || [])
+    }
+
+    // POST /api/favorites/:profileId/:seriesId
+    if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'favorites' && parts[2] && parts[3]) {
+      if (!favorites[parts[2]]) favorites[parts[2]] = []
+      const idx = favorites[parts[2]].indexOf(parts[3])
+      if (idx >= 0) {
+        favorites[parts[2]].splice(idx, 1)
+        return json(res, { isFavorite: false })
+      }
+      favorites[parts[2]].push(parts[3])
+      return json(res, { isFavorite: true })
+    }
+
+    // GET /api/progress/:profileId/:episodeId
+    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'progress' && parts[2] && parts[3]) {
+      return json(res, null)
+    }
+
+    // POST /api/progress
+    if (req.method === 'POST' && parts[0] === 'api' && parts[1] === 'progress') {
+      return json(res, { success: true })
+    }
+
+    // GET /api/serve-file — sirve archivos de video por HTTP
+    if (req.method === 'GET' && parts[0] === 'api' && parts[1] === 'serve-file' && parts[2]) {
+      const filePath = '/' + decodeURIComponent(parts.slice(2).join('/'))
+      if (!fs.existsSync(filePath)) {
+        res.writeHead(404)
+        return res.end('File not found')
+      }
+      const ext = path.extname(filePath).toLowerCase()
+      const mimeTypes = {
+        '.mp4': 'video/mp4', '.mkv': 'video/x-matroska',
+        '.avi': 'video/x-msvideo', '.mov': 'video/quicktime',
+        '.webm': 'video/webm', '.m4v': 'video/mp4',
+      }
+      res.writeHead(200, {
+        'Content-Type': mimeTypes[ext] || 'application/octet-stream',
+        'Content-Length': fs.statSync(filePath).size,
+        'Accept-Ranges': 'bytes',
+      })
+      fs.createReadStream(filePath).pipe(res)
+      return
+    }
+
     json(res, { error: 'Not found' }, 404)
   } catch (err) {
     json(res, { error: String(err) }, 500)

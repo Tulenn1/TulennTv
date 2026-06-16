@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { api } from '../lib/api'
+import { api, getVideoUrl } from '../lib/api'
 import { Series, Episode } from '../shared/types'
 import Player from '../components/Player'
 import PlayerControls from '../components/PlayerControls'
@@ -234,7 +234,7 @@ export default function Zapper() {
     }}>
       {currentEpisode ? (
         <Player
-          src={`file://${currentEpisode.path}`}
+          src={getVideoUrl(currentEpisode.path)}
           onTimeUpdate={handleTimeUpdate}
           onEnded={handleEnded}
           autoPlay={playing}

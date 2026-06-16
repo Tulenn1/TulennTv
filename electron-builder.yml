@@ -33,6 +33,7 @@ linux:
         - x64
   category: Video
   icon: public/icon.png
+  maintainer: Tulenn1 <toloplz12@gmail.com>
   artifactName: ${productName}-${version}.${ext}
 
 mac:

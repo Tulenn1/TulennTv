@@ -14,16 +14,19 @@ export default function Library() {
   const [scanPath, setScanPath] = useState('')
   const [scanType, setScanType] = useState('auto')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const loadLibrary = useCallback(async () => {
-    if (!profile) return
+  const loadLibrary = useCallback(async (): Promise<number> => {
+    if (!profile) return 0
     setLoading(true)
     try {
       const type = filter === 'all' ? undefined : filter
       const list = await api.getLibrary(type, search || undefined, profile.id)
       setSeries(list)
+      return list.length
     } catch (err) {
       console.error('Failed to load library:', err)
+      return 0
     } finally {
       setLoading(false)
     }
@@ -31,19 +34,27 @@ export default function Library() {
 
   useEffect(() => { loadLibrary() }, [loadLibrary])
 
-  const handleScan = async () => {
-    if (!scanPath.trim()) return
+  const handleScan = async (path?: string) => {
+    const dir = path || scanPath.trim()
+    if (!dir) return
     setLoading(true)
+    setError('')
     try {
       const type = scanType === 'auto' ? undefined : scanType
-      await api.scanDirectory(scanPath.trim(), type)
+      await api.scanDirectory(dir, type)
       setScanPath('')
-      await loadLibrary()
+      const count = await loadLibrary()
+      if (count === 0) setError('No se encontraron archivos de video en esa ruta. Formatos soportados: .mp4, .mkv, .avi, .mov, .webm')
     } catch (err) {
-      console.error('Scan failed:', err)
+      setError(`Error al escanear: ${err}`)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePickFolder = async () => {
+    const folder = await api.selectFolder()
+    if (folder) handleScan(folder)
   }
 
   const handleSelect = (s: Series) => {
@@ -88,9 +99,13 @@ export default function Library() {
         </div>
 
         <div style={styles.scanBar}>
+          <button style={styles.folderBtn} onClick={handlePickFolder}>
+            📁 Elegir carpeta
+          </button>
+          <span style={{ color: '#555', fontSize: 13, alignSelf: 'center' }}>o</span>
           <input
             style={{ ...styles.searchInput, flex: 1 }}
-            placeholder="Ruta de carpeta a escanear (ej: /media/Anime)"
+            placeholder="Escribí la ruta manualmente (ej: /media/Anime)"
             value={scanPath}
             onChange={e => setScanPath(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleScan()}
@@ -105,8 +120,10 @@ export default function Library() {
             <option value="series">Serie</option>
             <option value="movie">Película</option>
           </select>
-          <button style={styles.scanBtn} onClick={handleScan}>Escanear</button>
+          <button style={styles.scanBtn} onClick={() => handleScan()}>Escanear</button>
         </div>
+
+        {error && <div style={styles.error}>{error}</div>}
 
         {loading ? (
           <div style={styles.loading}>Cargando biblioteca...</div>
@@ -148,13 +165,15 @@ const styles: Record<string, React.CSSProperties> = {
   filters: { display: 'flex', gap: 4 },
   filterBtn: { padding: '6px 14px', background: '#1f1f1f', color: '#a0a0a0', borderRadius: 20, fontSize: 13 },
   filterActive: { padding: '6px 14px', background: '#e50914', color: '#fff', borderRadius: 20, fontSize: 13, fontWeight: 600 },
-  scanBar: { display: 'flex', gap: 8 },
+  scanBar: { display: 'flex', gap: 8, flexWrap: 'wrap' },
+  folderBtn: { padding: '8px 18px', background: '#1f1f1f', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14, border: '1px solid #333', whiteSpace: 'nowrap' as const },
   typeSelect: {
     padding: '8px 12px', background: '#1f1f1f', border: '1px solid #333',
     borderRadius: 8, color: '#fff', fontSize: 14, cursor: 'pointer',
   },
   scanBtn: { padding: '8px 20px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 },
+  error: { padding: '10px 16px', background: '#2a1010', border: '1px solid #e50914', borderRadius: 8, color: '#f88', fontSize: 13 },
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#a0a0a0' },
   empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 },
 }
