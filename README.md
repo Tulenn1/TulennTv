@@ -42,10 +42,33 @@ npm run electron:build   # genera .exe / .AppImage / .deb
 ## Cómo usarlo
 
 1. **Creá un perfil** — al iniciar la app
-2. **Escaneá tu biblioteca** — ingresá la ruta de tu carpeta de series/anime
+2. **Escaneá tu biblioteca** — ingresá la carpeta raíz donde tenés tus series
 3. **Zappeá** — navegá entre canales con ← → (flechas del teclado)
 4. **Guía de canales** — presioná ↑ para ver todos los canales
 5. **Smart TV** — abrí `http://<IP>:<puerto>` en el navegador de tu TV
+
+## Organización de archivos
+
+El escáner detecta automáticamente la estructura. Cada **subcarpeta = una serie**. Los **archivos de video adentro = episodios**.
+
+```
+📁 /media/Anime/              ← le indicás esta carpeta a la app
+   ├── 📁 Naruto/             ← se convierte en un "canal"
+   │   ├── Naruto Ep 01.mp4   ← se detecta como episodio
+   │   ├── Naruto Ep 02.mkv
+   │   └── Naruto S01E03.mkv
+   ├── 📁 One Piece/          ← otro "canal"
+   │   ├── One Piece 001.mp4
+   │   └── One Piece 002.mp4
+   └── 📁 Shingeki/
+       └── shingeki-ep01.mp4
+```
+
+**Formatos de video soportados:** `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.m4v`, `.wmv`, `.flv`
+
+**Detección de episodios:** el escáner reconoce patrones como `S01E01`, `Ep 01`, `Capítulo 1`, `001`, etc. Si no detecta número, asigna episodio 1.
+
+**Si la carpeta raíz contiene archivos sueltos** (ej: varias películas `.mp4` sin subcarpetas), esos archivos se agrupan como una sola serie con el nombre de la carpeta.
 
 ### Atajos de teclado (modo zapping)
 
