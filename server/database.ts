@@ -5,7 +5,10 @@ import { createSchema } from './schema'
 
 let db: Database.Database | null = null
 
-const DB_DIR = path.join(process.cwd(), 'data')
+const DB_DIR = process.env.NODE_ENV === 'test'
+  ? path.join(process.cwd(), 'data', 'test')
+  : path.join(process.cwd(), 'data')
+
 const DB_PATH = path.join(DB_DIR, 'tulenntv.db')
 
 export function getDb(): Database.Database {

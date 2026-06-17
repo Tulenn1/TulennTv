@@ -12,7 +12,7 @@ function isVideoFile(file: string): boolean {
   return VIDEO_EXTENSIONS.has(ext)
 }
 
-function parseEpisodeInfo(filename: string): { season: number; episode: number; title: string } {
+export function parseEpisodeInfo(filename: string): { season: number; episode: number; title: string } {
   const name = path.parse(filename).name
   const patterns = [
     /S(\d+)[Ee](\d+)/,
