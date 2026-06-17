@@ -150,6 +150,28 @@ export const api = {
     })
   },
 
+  // Media Folder
+  async getMediaFolder(): Promise<string> {
+    if (isElectron) return Promise.resolve('')
+    const res = await fetchApi<{ path: string }>('/api/settings/media-folder')
+    return res.path
+  },
+
+  async setMediaFolder(path: string): Promise<void> {
+    if (isElectron) return
+    await fetchApi('/api/settings/media-folder', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path }),
+    })
+  },
+
+  async browseDirectory(dir: string): Promise<{ current: string; parent: string | null; items: { name: string; path: string; isDir: boolean }[] }> {
+    if (isElectron) return { current: dir, parent: null, items: [] }
+    const encoded = encodeURIComponent(dir)
+    return fetchApi(`/api/browse/${encoded}`)
+  },
+
   // Channels
   async getChannels(): Promise<Channel[]> {
     if (isElectron) return ipcInvoke(IPC.GET_CHANNELS)
