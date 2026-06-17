@@ -54,73 +54,52 @@ export default function Zapper() {
 
   useEffect(() => { loadChannels() }, [loadChannels])
 
-  const findEpisodeIndex = (seriesId: string, episodes: Episode[]): number => {
-    const saved = episodeIndexMap[seriesId]
-    if (saved !== undefined) return saved
-    return 0
-  }
-
-  const prefetchEpisodes = useCallback(async (seriesId: string) => {
-    if (!profile || episodeQueues[seriesId]) return
+  const loadAndPlay = useCallback(async (seriesId: string) => {
+    if (!profile) return
     try {
       const series = await api.getSeries(seriesId, profile.id)
-      if (series?.episodes.length) {
-        setEpisodeQueues(prev => ({ ...prev, [seriesId]: series.episodes }))
-        const progress = series.progress
-        let epIdx = 0
-        if (progress) {
-          if (progress.completed) {
-            epIdx = series.episodes.findIndex(e => e.id !== progress.episodeId)
-            if (epIdx < 0) epIdx = 0
-          } else {
-            epIdx = series.episodes.findIndex(e => e.id === progress.episodeId)
-            if (epIdx < 0) epIdx = 0
-          }
+      if (!series?.episodes.length) return
+
+      setEpisodeQueues(prev => ({ ...prev, [seriesId]: series.episodes }))
+
+      const progress = series.progress
+      let epIdx = 0
+      if (progress) {
+        if (progress.completed) {
+          epIdx = series.episodes.findIndex(e => e.id !== progress.episodeId)
+          if (epIdx < 0) epIdx = 0
+        } else {
+          epIdx = series.episodes.findIndex(e => e.id === progress.episodeId)
+          if (epIdx < 0) epIdx = 0
         }
-        setEpisodeIndexMap(prev => {
-          if (prev[seriesId] !== undefined) return prev
-          return { ...prev, [seriesId]: epIdx }
-        })
       }
+
+      setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: epIdx }))
+      setCurrentEpisode(series.episodes[epIdx])
     } catch {}
-  }, [profile, episodeQueues])
+  }, [profile])
+
+  useEffect(() => {
+    if (channels.length === 0 || loading) return
+    const seriesId = channels[currentIndex].id
+    loadAndPlay(seriesId)
+  }, [channels, currentIndex, loading, loadAndPlay])
 
   const changeToChannel = useCallback(async (idx: number) => {
     if (idx < 0 || idx >= channels.length) return
+    const seriesId = channels[idx].id
     setCurrentIndex(idx)
     setShowControls(true)
     clearTimeout(controlsTimeout.current)
     controlsTimeout.current = setTimeout(() => setShowControls(false), 3000)
     setShowGuide(false)
 
-    const seriesId = channels[idx].id
-    if (!episodeQueues[seriesId]) {
-      await prefetchEpisodes(seriesId)
+    if (episodeQueues[seriesId]) {
+      const epIdx = episodeIndexMap[seriesId] ?? 0
+      const ep = episodeQueues[seriesId]?.[epIdx]
+      if (ep) setCurrentEpisode(ep)
     }
-    const episodes = episodeQueues[seriesId] || []
-    const epIdx = findEpisodeIndex(seriesId, episodes)
-    setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: epIdx }))
-    const ep = episodes[epIdx]
-    if (ep) setCurrentEpisode(ep)
-  }, [channels, episodeQueues, prefetchEpisodes])
-
-  useEffect(() => {
-    if (channels.length === 0 || loading) return
-    const seriesId = channels[currentIndex].id
-    prefetchEpisodes(seriesId)
-  }, [channels, currentIndex, loading, prefetchEpisodes])
-
-  useEffect(() => {
-    if (channels.length === 0 || loading) return
-    const seriesId = channels[currentIndex].id
-    const episodes = episodeQueues[seriesId]
-    if (!episodes) return
-    const epIdx = findEpisodeIndex(seriesId, episodes)
-    const ep = episodes[epIdx]
-    if (ep && (!currentEpisode || currentEpisode.id !== ep.id)) {
-      setCurrentEpisode(ep)
-    }
-  }, [channels, currentIndex, episodeQueues, loading, currentEpisode])
+  }, [channels, episodeQueues, episodeIndexMap])
 
   const changeChannel = useCallback((direction: 1 | -1) => {
     if (channels.length === 0) return
@@ -181,17 +160,12 @@ export default function Zapper() {
   }, [changeChannel, playing, navigate, saveProgress])
 
   useEffect(() => {
-    const prefetchNearby = async () => {
-      if (channels.length < 2) return
-      const next = (currentIndex + 1) % channels.length
-      const prev = (currentIndex - 1 + channels.length) % channels.length
-      await Promise.all([
-        prefetchEpisodes(channels[next].id),
-        prefetchEpisodes(channels[prev].id),
-      ])
-    }
-    prefetchNearby()
-  }, [currentIndex, channels, prefetchEpisodes])
+    if (channels.length < 2) return
+    const next = (currentIndex + 1) % channels.length
+    const prev = (currentIndex - 1 + channels.length) % channels.length
+    loadAndPlay(channels[next].id)
+    loadAndPlay(channels[prev].id)
+  }, [currentIndex, channels, loadAndPlay])
 
   const advanceEpisode = useCallback(async () => {
     if (!channels[currentIndex]) return
