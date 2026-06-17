@@ -357,7 +357,7 @@ export default function Folders() {
                   <button style={helpStyles.fetchBtn} onClick={async () => {
                     setPosterStatus('Buscando posters...')
                     try {
-                      const res = await api.fetchAllPosters()
+                      const res = await api.fetchAllPosters(tmdbKey)
                       setPosterStatus(`✅ ${res.found} posters encontrados de ${res.total} series`)
                     } catch {
                       setPosterStatus('❌ Error al buscar posters')

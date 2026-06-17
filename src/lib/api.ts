@@ -170,8 +170,12 @@ export const api = {
     })
   },
 
-  async fetchAllPosters(): Promise<{ found: number; total: number }> {
-    return fetchApi('/api/poster/fetch-all', { method: 'POST' })
+  async fetchAllPosters(tmdbKey?: string): Promise<{ found: number; total: number }> {
+    return fetchApi('/api/poster/fetch-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tmdbKey }),
+    })
   },
 
   async openFolder(path: string): Promise<void> {

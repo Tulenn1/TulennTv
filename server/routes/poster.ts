@@ -80,17 +80,28 @@ async function fetchTmdbPoster(title: string, apiKey: string, seriesId: string, 
 
 router.post('/fetch-all', async (req: Request, res: Response) => {
   const db = getDb()
-  const tmdbKey = db.prepare("SELECT value FROM app_session WHERE key = ?").get('tmdb_key') as { value: string } | undefined
-  if (!tmdbKey?.value) {
+  const bodyKey = req.body?.tmdbKey as string | undefined
+  let key = bodyKey
+
+  if (!key) {
+    const row = db.prepare("SELECT value FROM app_session WHERE key = ?").get('tmdb_key') as { value: string } | undefined
+    key = row?.value
+  }
+
+  if (!key) {
     res.status(400).json({ error: 'NO_TMDB_KEY', message: 'TMDB API key not configured' })
     return
+  }
+
+  if (bodyKey) {
+    db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run('tmdb_key', bodyKey)
   }
 
   const series = db.prepare('SELECT id, title, poster FROM series ORDER BY title').all() as any[]
   let found = 0
   for (const s of series) {
     if (s.poster) continue
-    const url = await fetchTmdbPoster(s.title, tmdbKey.value, s.id, db)
+    const url = await fetchTmdbPoster(s.title, key, s.id, db)
     if (url) found++
   }
   res.json({ found, total: series.length })
