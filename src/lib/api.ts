@@ -157,6 +157,23 @@ export const api = {
     return res.path
   },
 
+  async getTmdbKey(): Promise<string> {
+    const res = await fetchApi<{ key: string }>('/api/settings/tmdb-key')
+    return res.key
+  },
+
+  async setTmdbKey(key: string): Promise<void> {
+    await fetchApi('/api/settings/tmdb-key', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    })
+  },
+
+  async fetchAllPosters(): Promise<{ found: number; total: number }> {
+    return fetchApi('/api/poster/fetch-all', { method: 'POST' })
+  },
+
   async openFolder(path: string): Promise<void> {
     if (isElectron) return
     await fetchApi('/api/settings/open-folder', {

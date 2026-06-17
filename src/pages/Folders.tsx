@@ -3,11 +3,105 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { api } from '../lib/api'
 
+function FolderHelpModal({ open, onClose, basePath }: { open: boolean; onClose: () => void; basePath: string }) {
+  if (!open) return null
+  return (
+    <div style={helpStyles.overlay} onClick={onClose}>
+      <div style={helpStyles.modal} onClick={e => e.stopPropagation()}>
+        <div style={helpStyles.header}>
+          <span style={{ fontSize: 18, fontWeight: 700 }}>📂 Estructura de carpetas</span>
+          <button style={helpStyles.closeBtn} onClick={onClose}>✕</button>
+        </div>
+        <div style={helpStyles.body}>
+          <p style={helpStyles.text}>
+            Cada <strong>subcarpeta</strong> dentro de la carpeta principal se convierte en un <strong>canal</strong>.
+            Los <strong>archivos de video</strong> dentro de cada subcarpeta son los <strong>episodios</strong>.
+          </p>
+
+          <div style={helpStyles.diagram}>
+            <div style={helpStyles.treeLine}>
+              <span style={helpStyles.folder}>📁</span>
+              <span style={helpStyles.bold}>{basePath || 'CarpetaPrincipal/'}</span>
+              <span style={helpStyles.tag}>carpeta raíz (la que configuras)</span>
+            </div>
+
+            <div style={helpStyles.treeChild}>
+              <div style={helpStyles.treeLine}>
+                <span style={helpStyles.folder}>📁</span>
+                <span style={helpStyles.bold}>Naruto/</span>
+                <span style={helpStyles.tag}>→ se convierte en un canal</span>
+              </div>
+              <div style={helpStyles.treeGrandchild}>
+                <div style={helpStyles.treeLine}>
+                  <span style={helpStyles.video}>🎬</span>
+                  <span>Naruto Ep 01.mp4</span>
+                  <span style={helpStyles.tag}>episodio 1</span>
+                </div>
+                <div style={helpStyles.treeLine}>
+                  <span style={helpStyles.video}>🎬</span>
+                  <span>Naruto Ep 02.mkv</span>
+                  <span style={helpStyles.tag}>episodio 2</span>
+                </div>
+                <div style={helpStyles.treeLine}>
+                  <span style={helpStyles.image}>🖼️</span>
+                  <span>poster.jpg</span>
+                  <span style={helpStyles.tag}>carátula (opcional)</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={helpStyles.treeChild}>
+              <div style={helpStyles.treeLine}>
+                <span style={helpStyles.folder}>📁</span>
+                <span style={helpStyles.bold}>One Piece/</span>
+                <span style={helpStyles.tag}>→ otro canal</span>
+              </div>
+              <div style={helpStyles.treeGrandchild}>
+                <div style={helpStyles.treeLine}>
+                  <span style={helpStyles.video}>🎬</span>
+                  <span>[Subs] OP - 001.mkv</span>
+                  <span style={helpStyles.tag}>detecta episodio 1</span>
+                </div>
+                <div style={helpStyles.treeLine}>
+                  <span style={helpStyles.video}>🎬</span>
+                  <span>OP - 002 [1080p].mkv</span>
+                  <span style={helpStyles.tag}>limpia etiquetas</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={helpStyles.treeChild}>
+              <div style={helpStyles.treeLine}>
+                <span style={helpStyles.folder}>📁</span>
+                <span style={helpStyles.bold}>Shingeki/</span>
+              </div>
+              <div style={helpStyles.treeGrandchild}>
+                <div style={helpStyles.treeLine}>
+                  <span style={helpStyles.video}>🎬</span>
+                  <span>Shingeki S01E01.mkv</span>
+                  <span style={helpStyles.tag}>temp 1, ep 1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={helpStyles.tips}>
+            <div style={helpStyles.tip}><strong>📝 Nombres:</strong> Se detectan patrones como <kbd style={helpStyles.kbd}>S01E01</kbd>, <kbd style={helpStyles.kbd}>Ep 01</kbd>, <kbd style={helpStyles.kbd}>- 01</kbd>, <kbd style={helpStyles.kbd}>[01]</kbd></div>
+            <div style={helpStyles.tip}><strong>🖼️ Posters:</strong> Cualquier <kbd style={helpStyles.kbd}>poster.jpg</kbd>, <kbd style={helpStyles.kbd}>cover.png</kbd> o <kbd style={helpStyles.kbd}>folder.jpg</kbd> dentro de la carpeta se usa como carátula</div>
+            <div style={helpStyles.tip}><strong>🎬 Formatos:</strong> .mp4, .mkv, .avi, .mov, .webm, .m4v, .wmv, .flv</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Folders() {
   const { profile } = useApp()
   const navigate = useNavigate()
   const [folders, setFolders] = useState<{ path: string; seriesCount: number }[]>([])
   const [loading, setLoading] = useState(true)
+  const [showHelp, setShowHelp] = useState(false)
 
   const [mediaFolder, setMediaFolder] = useState('')
   const [editingFolder, setEditingFolder] = useState(false)
@@ -18,15 +112,21 @@ export default function Folders() {
   const [browseParent, setBrowseParent] = useState<string | null>(null)
   const [showBrowser, setShowBrowser] = useState(false)
 
+  const [showSettings, setShowSettings] = useState(false)
+  const [tmdbKey, setTmdbKey] = useState('')
+  const [posterStatus, setPosterStatus] = useState('')
+
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [list, mf] = await Promise.all([
+      const [list, mf, tk] = await Promise.all([
         api.getFolders(),
         api.getMediaFolder(),
+        api.getTmdbKey(),
       ])
       setFolders(list)
       setMediaFolder(mf)
+      setTmdbKey(tk)
     } catch (err) {
       console.error(err)
     } finally {
@@ -108,26 +208,15 @@ export default function Folders() {
         </div>
 
         <div style={styles.mediaFolderSection}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Carpeta principal de contenido</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600 }}>Carpeta principal de contenido</h3>
+            <button style={styles.helpBtn} onClick={() => setShowHelp(true)} title="¿Cómo organizar las carpetas?">?</button>
+          </div>
           <p style={{ fontSize: 13, color: '#888', marginBottom: 12 }}>
             Todos tus videos se organizan dentro de esta carpeta. La app escanea automáticamente las subcarpetas.
           </p>
 
-          <div style={styles.exampleBox}>
-            <strong>📂 Estructura recomendada:</strong>
-            <pre style={styles.exampleCode}>
-{mediaFolder || '📁 CarpetaPrincipal/'}
- ├── 📁 Naruto/            ← se convierte en un canal
- │    ├── ep01.mp4         ← se detecta como episodio
- │    ├── ep02.mkv
- │    └── poster.jpg       ← carátula (opcional)
- ├── 📁 One Piece/
- │    ├── [Subs] OP - 001.mkv
- │    └── [Subs] OP - 002.mkv
- └── 📁 Shingeki/
-      └── poster.jpg
-      └── Shingeki S01E01.mkv</pre>
-          </div>
+          <FolderHelpModal open={showHelp} onClose={() => setShowHelp(false)} basePath={mediaFolder} />
 
           {editingFolder ? (
             <div style={styles.folderEditRow}>
@@ -169,6 +258,14 @@ export default function Folders() {
               🔍 Escanear carpeta principal
             </button>
           )}
+
+          <button style={{ ...styles.btn, background: '#333', marginTop: 8 }} onClick={async () => {
+            const k = await api.getTmdbKey()
+            setTmdbKey(k)
+            setShowSettings(true)
+          }}>
+            🖼️ Configurar posters desde internet
+          </button>
         </div>
 
         {showBrowser && (
@@ -223,6 +320,53 @@ export default function Folders() {
           )}
         </div>
       </div>
+
+      {showSettings && (
+        <div style={helpStyles.overlay} onClick={() => setShowSettings(false)}>
+          <div style={helpStyles.modal} onClick={e => e.stopPropagation()}>
+            <div style={helpStyles.header}>
+              <span style={{ fontSize: 18, fontWeight: 700 }}>🖼️ Posters desde internet</span>
+              <button style={helpStyles.closeBtn} onClick={() => setShowSettings(false)}>✕</button>
+            </div>
+            <div style={{ ...helpStyles.body, gap: 12 }}>
+              <p style={helpStyles.text}>
+                Para buscar carátulas automáticamente, necesitás una <strong>API key de TMDB</strong>.
+                Es <strong>gratis</strong> y se obtiene en:
+              </p>
+              <pre style={helpStyles.code}>https://www.themoviedb.org/settings/api</pre>
+
+              <label style={{ fontSize: 13, color: '#aaa' }}>TMDB API Key:</label>
+              <input
+                style={helpStyles.input}
+                value={tmdbKey}
+                onChange={e => setTmdbKey(e.target.value)}
+                placeholder="eyJhbGciOiJIUzI1NiJ9..."
+              />
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <button style={helpStyles.saveBtn} onClick={async () => {
+                  await api.setTmdbKey(tmdbKey)
+                  setPosterStatus('')
+                  setShowSettings(false)
+                }}>Guardar</button>
+                {tmdbKey && (
+                  <button style={helpStyles.fetchBtn} onClick={async () => {
+                    setPosterStatus('Buscando posters...')
+                    try {
+                      const res = await api.fetchAllPosters()
+                      setPosterStatus(`✅ ${res.found} posters encontrados de ${res.total} series`)
+                    } catch {
+                      setPosterStatus('❌ Error al buscar posters')
+                    }
+                  }}>🔍 Buscar todos los posters</button>
+                )}
+              </div>
+
+              {posterStatus && <p style={{ fontSize: 13, color: posterStatus.includes('✅') ? '#46d369' : '#e50914' }}>{posterStatus}</p>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -243,8 +387,11 @@ const styles: Record<string, React.CSSProperties> = {
   folderPath: { fontSize: 14, color: '#a0a0a0', fontFamily: 'monospace', flex: 1 },
   input: { padding: '8px 12px', background: '#141414', border: '1px solid #333', borderRadius: 6, color: '#fff', fontSize: 14 },
   btn: { padding: '8px 16px', background: '#333', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap' },
-  exampleBox: { background: '#141414', borderRadius: 6, padding: 12, marginBottom: 12, fontSize: 13, color: '#aaa', lineHeight: 1.6 },
-  exampleCode: { fontFamily: 'monospace', fontSize: 12, color: '#888', marginTop: 8, padding: '8px 12px', background: '#0a0a0a', borderRadius: 4, overflow: 'auto' },
+  helpBtn: {
+    width: 28, height: 28, borderRadius: '50%', background: '#333',
+    color: '#a0a0a0', border: 'none', fontSize: 14, fontWeight: 700,
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
   browserOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
   browserModal: { background: '#1f1f1f', borderRadius: 12, width: '60%', maxWidth: 600, maxHeight: '70vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   browserHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #333', fontSize: 14, fontFamily: 'monospace' },
@@ -260,4 +407,29 @@ const styles: Record<string, React.CSSProperties> = {
   actionBtn: { padding: '6px 12px', background: '#333', border: 'none', color: '#fff', borderRadius: 6, fontSize: 14, cursor: 'pointer', fontWeight: 600 },
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#a0a0a0' },
   empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 },
+}
+
+const helpStyles: Record<string, React.CSSProperties> = {
+  overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 },
+  modal: { background: '#1a1a1a', borderRadius: 12, width: '100%', maxWidth: 600, maxHeight: '85vh', display: 'flex', flexDirection: 'column', border: '1px solid #333', overflow: 'hidden' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #333' },
+  closeBtn: { background: 'transparent', border: 'none', color: '#a0a0a0', fontSize: 20, cursor: 'pointer', padding: 4 },
+  body: { flex: 1, overflow: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 },
+  text: { fontSize: 14, color: '#ccc', lineHeight: 1.7 },
+  diagram: { background: '#0f0f0f', borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 2, fontSize: 14, fontFamily: 'monospace' },
+  treeLine: { display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', flexWrap: 'wrap' },
+  treeChild: { paddingLeft: 24, display: 'flex', flexDirection: 'column', gap: 2, borderLeft: '1px solid #333', marginLeft: 8, marginTop: 2, marginBottom: 2 },
+  treeGrandchild: { paddingLeft: 24, display: 'flex', flexDirection: 'column', gap: 2, borderLeft: '1px solid #444', marginLeft: 8 },
+  folder: { fontSize: 16 },
+  video: { fontSize: 14 },
+  image: { fontSize: 14 },
+  bold: { fontWeight: 700, color: '#fff' },
+  tag: { fontSize: 11, color: '#888', fontStyle: 'italic', fontFamily: 'sans-serif' },
+  tips: { display: 'flex', flexDirection: 'column', gap: 8, background: '#0f0f0f', borderRadius: 8, padding: 14 },
+  tip: { fontSize: 13, color: '#aaa', lineHeight: 1.6 },
+  kbd: { background: '#333', color: '#fff', padding: '2px 6px', borderRadius: 3, fontSize: 12, fontFamily: 'monospace' },
+  code: { background: '#0a0a0a', padding: 10, borderRadius: 6, fontSize: 12, color: '#888', lineHeight: 1.5, overflow: 'auto' },
+  input: { padding: '10px 14px', background: '#0a0a0a', border: '1px solid #333', borderRadius: 6, color: '#fff', fontSize: 14, width: '100%', fontFamily: 'monospace' },
+  saveBtn: { padding: '10px 20px', background: '#e50914', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 14 },
+  fetchBtn: { padding: '10px 20px', background: '#333', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 14 },
 }

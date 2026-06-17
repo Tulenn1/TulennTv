@@ -1,5 +1,18 @@
 import { Series } from '../shared/types'
 
+const COLORS = [
+  '#e50914', '#e87c03', '#46d369', '#0080ff', '#e91e63',
+  '#9c27b0', '#ff5722', '#00bcd4', '#4caf50', '#ff9800',
+]
+
+function hashColor(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return COLORS[Math.abs(hash) % COLORS.length]
+}
+
 interface Props {
   series: Series
   onClick: () => void
@@ -8,17 +21,19 @@ interface Props {
 }
 
 export default function SeriesCard({ series, onClick, onDelete, favorite }: Props) {
+  const bg = hashColor(series.title)
   return (
     <div style={styles.wrapper}>
       <button onClick={onClick} style={styles.card}>
         <div style={styles.thumbnail}>
           {series.poster ? (
-            <img src={`/api/poster/${series.id}`} alt={series.title} style={styles.poster} />
-          ) : (
-            <div style={styles.placeholder}>
-              {series.title.charAt(0).toUpperCase()}
-            </div>
-          )}
+            <img src={`/api/poster/${series.id}`} alt={series.title} style={styles.poster}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+          ) : null}
+          <div style={{ ...styles.placeholder, background: bg, display: series.poster ? 'none' : 'flex' }}>
+            <span style={styles.letter}>{series.title.charAt(0).toUpperCase()}</span>
+            <span style={styles.typeLabel}>{series.type}</span>
+          </div>
           {favorite && <span style={styles.star}>★</span>}
           <span style={styles.badge}>{series.type}</span>
         </div>
@@ -47,12 +62,14 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'transform 0.2s, box-shadow 0.2s', display: 'block', width: '100%',
   },
   thumbnail: { position: 'relative', width: '100%', aspectRatio: '2/3', background: '#141414' },
-  poster: { width: '100%', height: '100%', objectFit: 'cover' },
+  poster: { width: '100%', height: '100%', objectFit: 'cover', position: 'absolute' as const, top: 0, left: 0 },
   placeholder: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: '100%', height: '100%', fontSize: 48, color: '#333',
+    width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', gap: 4,
   },
-  star: { position: 'absolute', top: 8, right: 8, color: '#ffd700', fontSize: 20 },
+  letter: { fontSize: 52, fontWeight: 800, color: 'rgba(255,255,255,0.3)', lineHeight: 1 },
+  typeLabel: { fontSize: 10, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase' as const, letterSpacing: 2 },
+  star: { position: 'absolute', top: 8, right: 8, color: '#ffd700', fontSize: 20, zIndex: 1 },
   badge: {
     position: 'absolute', bottom: 8, left: 8, padding: '2px 8px',
     background: 'rgba(0,0,0,0.7)', borderRadius: 4, fontSize: 11,

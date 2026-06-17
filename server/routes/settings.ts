@@ -36,4 +36,17 @@ router.post('/open-folder', (req: Request, res: Response) => {
   }
 })
 
+router.get('/tmdb-key', (_req: Request, res: Response) => {
+  const db = getDb()
+  const row = db.prepare("SELECT value FROM app_session WHERE key = ?").get('tmdb_key') as { value: string } | undefined
+  res.json({ key: row?.value || '' })
+})
+
+router.put('/tmdb-key', (req: Request, res: Response) => {
+  const { key } = req.body
+  const db = getDb()
+  db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run('tmdb_key', key || '')
+  res.json({ success: true })
+})
+
 export default router
