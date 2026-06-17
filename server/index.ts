@@ -1,0 +1,75 @@
+import express from 'express'
+import cors from 'cors'
+import path from 'path'
+import { getDb, closeDb } from './database'
+import profilesRouter from './routes/profiles'
+import libraryRouter from './routes/library'
+import progressRouter from './routes/progress'
+import favoritesRouter from './routes/favorites'
+import channelsRouter from './routes/channels'
+import foldersRouter from './routes/folders'
+import scannerRouter from './routes/scanner'
+import episodeRouter from './routes/episode'
+import videoRouter from './routes/video'
+import { streamVideo } from './streamer'
+import { ensureAutoChannels } from './channels'
+import { backupDatabase, cleanupOldBackups } from './backup'
+import { getLocalIp } from './utils/network'
+
+const app = express()
+const PORT = parseInt(process.env.PORT || '3456', 10)
+
+app.use(cors())
+app.use(express.json())
+
+app.use('/api/profiles', profilesRouter)
+app.use('/api/library', libraryRouter)
+app.use('/api/progress', progressRouter)
+app.use('/api/favorites', favoritesRouter)
+app.use('/api/channels', channelsRouter)
+app.use('/api/folders', foldersRouter)
+app.use('/api/scanner', scannerRouter)
+app.use('/api/episode', episodeRouter)
+app.use('/api/video', videoRouter)
+
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() })
+})
+
+app.get(/^\/api\/serve-file\/(.+)$/, (req, res) => {
+  const filePath = '/' + decodeURIComponent(req.params[0])
+  streamVideo(filePath, req, res)
+})
+
+app.use(express.static(path.join(process.cwd(), 'dist')))
+
+const SPA_PATHS = ['/', '/profiles', '/library', '/zapper', '/guide', '/channels', '/folders', '/tv-connect']
+for (const route of SPA_PATHS) {
+  app.get(route, (_req, res) => {
+    res.sendFile(path.join(process.cwd(), 'dist', 'index.html'))
+  })
+}
+
+getDb()
+ensureAutoChannels()
+cleanupOldBackups()
+backupDatabase()
+setInterval(() => backupDatabase(), 24 * 60 * 60 * 1000)
+app.listen(PORT, '0.0.0.0', () => {
+  const ip = getLocalIp()
+  console.log(`\n  🎬 TulennTv Server`)
+  console.log(`  ─────────────────`)
+  console.log(`  Local:   http://localhost:${PORT}`)
+  console.log(`  Red:     http://${ip}:${PORT}`)
+  console.log(`  Puerto:  ${PORT}\n`)
+})
+
+process.on('SIGINT', () => {
+  closeDb()
+  process.exit(0)
+})
+
+process.on('SIGTERM', () => {
+  closeDb()
+  process.exit(0)
+})

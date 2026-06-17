@@ -61,6 +61,16 @@ export default function Library() {
     navigate(`/zapper?series=${s.id}`)
   }
 
+  const handleDeleteSeries = async (s: Series) => {
+    if (!confirm(`¿Eliminar "${s.title}" de la biblioteca?`)) return
+    try {
+      await api.deleteSeries(s.id)
+      await loadLibrary()
+    } catch (err) {
+      console.error('Failed to delete series:', err)
+    }
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.sidebar}>
@@ -137,7 +147,7 @@ export default function Library() {
         ) : (
           <div style={styles.grid}>
             {series.map(s => (
-              <SeriesCard key={s.id} series={s} onClick={() => handleSelect(s)} />
+              <SeriesCard key={s.id} series={s} onClick={() => handleSelect(s)} onDelete={() => handleDeleteSeries(s)} />
             ))}
           </div>
         )}

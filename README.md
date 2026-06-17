@@ -1,63 +1,78 @@
 # TulennTv
 
-App tipo TV que simula **zapping** con archivos locales de anime, series y películas. Cambiá entre tus series como si fueran canales de TV.
+App tipo TV que simula **zapping** con archivos locales de anime, series y películas.
+Corre como servidor en un notebook Windows y se accede desde cualquier dispositivo
+(Smart TV, tablet, celular, PC) solo con un navegador.
 
 ## Stack
 
 | Capa | Tecnología |
 |------|-----------|
-| Frontend | React + TypeScript |
-| Desktop | Electron + vite-plugin-electron |
-| Web TV | Servidor HTTP embebido + navegador |
-| Persistencia | SQLite (better-sqlite3) |
-| Empaquetado | electron-builder → .exe / .AppImage / .deb |
+| Servidor | **Node.js + Express** |
+| Frontend | **React + TypeScript** (SPA, servida estáticamente) |
+| Clientes | Cualquier navegador (TV, tablet, celular, PC) |
+| Streaming | HTML5 Video + HTTP Range headers |
+| Persistencia | **SQLite** (better-sqlite3) |
+| Servidor OS | Windows 10 / 11 (notebook reciclado) |
 
 ## Requisitos
 
 - Node.js 18+
 - npm 9+
-- Para Electron en Linux: `libnss3`, `libgtk-3-0`, `libgbm1`, `libdrm2`, `libxkbcommon0`
 
 ## Instalación y uso
 
+### En el servidor (notebook Windows)
+
 ```bash
-# Clonar
 git clone https://github.com/Tulenn1/TulennTv.git
 cd TulennTv
-
-# Instalar dependencias
 npm install
-
-# Desarrollo (Vite + Electron)
-npm run electron:dev
-
-# Solo web (sin Electron, para probar UI en navegador)
-npx vite --config vite.web.config.ts
-
-# Build para producción
-npm run build
-npm run electron:build   # genera .exe / .AppImage / .deb
+npm run build    # compila el frontend React
 ```
+
+**Inicio manual:**
+```bash
+npm start
+# o doble clic en scripts/start-server.bat
+```
+
+**Auto-inicio (opcional):**
+Ejecutar PowerShell como Administrador:
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\scripts\firewall.ps1
+.\scripts\install-service.ps1
+```
+
+### En los clientes (Smart TV, tablet, celular)
+
+Solo abrí el navegador y entrá a:
+```
+http://<IP-del-servidor>:3456
+```
+
+La IP se muestra en la consola al iniciar el servidor.
 
 ## Cómo usarlo
 
-1. **Creá un perfil** — al iniciar la app
+1. **Creá un perfil** — al entrar desde el navegador
 2. **Escaneá tu biblioteca** — ingresá la carpeta raíz donde tenés tus series
 3. **Zappeá** — navegá entre canales con ← → (flechas del teclado)
 4. **Guía de canales** — presioná ↑ para ver todos los canales
-5. **Smart TV** — abrí `http://<IP>:<puerto>` en el navegador de tu TV
 
 ## Organización de archivos
 
-El escáner detecta automáticamente la estructura. Cada **subcarpeta = una serie**. Los **archivos de video adentro = episodios**.
+El escáner detecta automáticamente la estructura. Cada **subcarpeta = una serie**.
+Los **archivos de video adentro = episodios**.
 
 ```
-📁 /media/Anime/              ← le indicás esta carpeta a la app
-   ├── 📁 Naruto/             ← se convierte en un "canal"
-   │   ├── Naruto Ep 01.mp4   ← se detecta como episodio
+📁 D:/Media/Anime/              ← le indicás esta carpeta a la app
+   ├── 📁 Naruto/               ← se convierte en un "canal"
+   │   ├── Naruto Ep 01.mp4     ← se detecta como episodio
    │   ├── Naruto Ep 02.mkv
    │   └── Naruto S01E03.mkv
-   ├── 📁 One Piece/          ← otro "canal"
+   ├── 📁 One Piece/             ← otro "canal"
    │   ├── One Piece 001.mp4
    │   └── One Piece 002.mp4
    └── 📁 Shingeki/
@@ -66,9 +81,7 @@ El escáner detecta automáticamente la estructura. Cada **subcarpeta = una seri
 
 **Formatos de video soportados:** `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.m4v`, `.wmv`, `.flv`
 
-**Detección de episodios:** el escáner reconoce patrones como `S01E01`, `Ep 01`, `Capítulo 1`, `001`, etc. Si no detecta número, asigna episodio 1.
-
-**Si la carpeta raíz contiene archivos sueltos** (ej: varias películas `.mp4` sin subcarpetas), esos archivos se agrupan como una sola serie con el nombre de la carpeta.
+**Detección de episodios:** reconoce `S01E01`, `Ep 01`, `Capítulo 1`, `001`, etc.
 
 ### Atajos de teclado (modo zapping)
 
@@ -83,41 +96,63 @@ El escáner detecta automáticamente la estructura. Cada **subcarpeta = una seri
 ## Arquitectura
 
 ```
-electron/              # Backend (Node.js + SQLite)
-├── main.ts            # Entry point de Electron
-├── preload.ts         # Bridge IPC seguro
-├── database.ts        # Conexión SQLite
-├── schema.ts          # Esquema de tablas
-├── scanner.ts         # Escáner de archivos de video
-├── library.ts         # CRUD de biblioteca
-├── profiles.ts        # Gestión de perfiles
-├── favorites.ts       # Favoritos por perfil
-├── progress.ts        # Progreso de reproducción
-├── ipc.ts             # Handlers IPC
-└── server.ts          # Servidor HTTP para Web TV
-
-src/                   # Frontend React (compartido PC + TV)
-├── pages/
-│   ├── ProfileSelector.tsx
-│   ├── Library.tsx
-│   ├── Zapper.tsx
-│   ├── Guide.tsx
-│   └── TvConnect.tsx
-├── components/
-│   ├── Player.tsx
-│   ├── PlayerControls.tsx
-│   ├── SeriesCard.tsx
-│   └── ZapperOverlay.tsx
-├── lib/api.ts         # Capa de abstracción IPC / HTTP
-└── context/AppContext.tsx
-
-docs/pipeline/         # Plan, specs Gherkin y tareas
-agents-stack/          # Agentes opencode
+TulennTv/
+├── server/               # Backend (Node.js + Express)
+│   ├── index.ts          # Entry point del servidor
+│   ├── database.ts       # Conexión SQLite
+│   ├── schema.ts         # Esquema de tablas
+│   ├── scanner.ts        # Escáner de archivos de video
+│   ├── streamer.ts       # Streaming HTTP con Range headers
+│   ├── channels.ts       # Canales automáticos
+│   ├── backup.ts         # Backup automático de DB
+│   ├── utils/
+│   │   └── network.ts    # Detección de IP local
+│   └── routes/
+│       ├── profiles.ts   # CRUD de perfiles
+│       ├── library.ts    # Biblioteca y episodios
+│       ├── progress.ts   # Progreso de reproducción
+│       ├── favorites.ts  # Favoritos por perfil
+│       ├── channels.ts   # Canales auto/custom
+│       ├── folders.ts    # Carpetas escaneadas
+│       ├── scanner.ts    # Endpoint de escaneo
+│       ├── episode.ts    # Detalle de episodio
+│       └── video.ts      # Streaming de video
+├── src/                  # Frontend React (SPA)
+│   ├── pages/
+│   │   ├── ProfileSelector.tsx
+│   │   ├── Library.tsx
+│   │   ├── Zapper.tsx
+│   │   ├── Guide.tsx
+│   │   ├── Channels.tsx
+│   │   ├── Folders.tsx
+│   │   └── TvConnect.tsx
+│   ├── components/
+│   │   ├── Player.tsx
+│   │   ├── PlayerControls.tsx
+│   │   ├── SeriesCard.tsx
+│   │   └── ZapperOverlay.tsx
+│   ├── lib/api.ts        # Capa de abstracción HTTP
+│   └── context/AppContext.tsx
+├── scripts/              # Scripts Windows
+│   ├── start-server.bat
+│   ├── install-service.ps1
+│   └── firewall.ps1
+├── docs/pipeline/        # Plan, specs Gherkin y tareas
+└── agents-stack/         # Agentes opencode
 ```
+
+## Scripts disponibles
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Desarrollo (Vite + servidor con hot-reload) |
+| `npm run build` | Compila frontend React |
+| `npm start` | Inicia servidor en producción |
+| `npm test` | Ejecuta tests |
 
 ## Pipeline de desarrollo (opencode)
 
-Este proyecto incluye un pipeline de 6 etapas con agentes opencode:
+Pipeline de 6 etapas con agentes opencode:
 
 ```
 /planner → /spec → /tasks → /implement-all → /pr-ready
