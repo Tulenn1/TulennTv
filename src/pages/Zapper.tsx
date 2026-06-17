@@ -105,6 +105,19 @@ export default function Zapper() {
     }
   }, [channels, episodeQueues, episodeIndexMap])
 
+  const changeEpisode = useCallback((direction: 1 | -1) => {
+    if (!channels[currentIndex]) return
+    const seriesId = channels[currentIndex].id
+    const episodes = episodeQueues[seriesId]
+    if (!episodes?.length) return
+    const currentIdx = episodeIndexMap[seriesId] || 0
+    const nextIdx = currentIdx + direction
+    if (nextIdx < 0 || nextIdx >= episodes.length) return
+    setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: nextIdx }))
+    setCurrentEpisode(episodes[nextIdx])
+    setInitialPos(undefined)
+  }, [channels, currentIndex, episodeQueues, episodeIndexMap])
+
   const changeChannel = useCallback((direction: 1 | -1) => {
     if (channels.length === 0) return
     const newIndex = (currentIndex + direction + channels.length) % channels.length
@@ -127,10 +140,10 @@ export default function Zapper() {
 
       switch (e.key) {
         case 'ArrowRight':
-          changeChannel(1)
+          changeEpisode(1)
           break
         case 'ArrowLeft':
-          changeChannel(-1)
+          changeEpisode(-1)
           break
         case 'ArrowUp':
           setShowGuide(prev => !prev)
@@ -182,13 +195,19 @@ export default function Zapper() {
   const advanceEpisode = useCallback(async () => {
     if (!channels[currentIndex]) return
     const seriesId = channels[currentIndex].id
+    const episodes = episodeQueues[seriesId]
     const currentIdx = episodeIndexMap[seriesId] || 0
 
     await saveProgress(true)
 
-    setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: currentIdx + 1 }))
-    changeChannel(1)
-  }, [channels, currentIndex, episodeIndexMap, saveProgress, changeChannel])
+    const nextIdx = currentIdx + 1
+    if (episodes && nextIdx < episodes.length) {
+      setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: nextIdx }))
+      setCurrentEpisode(episodes[nextIdx])
+    } else {
+      changeChannel(1)
+    }
+  }, [channels, currentIndex, episodeQueues, episodeIndexMap, saveProgress, changeChannel])
 
   const handleEnded = useCallback(() => {
     advanceEpisode()
@@ -250,6 +269,8 @@ export default function Zapper() {
         channelNumber={currentIndex + 1}
         totalChannels={channels.length}
         favorite={(channels[currentIndex] as any)?.favorite}
+        totalEpisodes={episodeQueues[channels[currentIndex]?.id]?.length}
+        currentEpisodeIndex={episodeIndexMap[channels[currentIndex]?.id] ?? 0}
       />
 
       <PlayerControls

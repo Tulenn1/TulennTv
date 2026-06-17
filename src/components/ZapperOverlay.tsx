@@ -6,13 +6,14 @@ interface Props {
   episode: number
   channelNumber: number
   totalChannels: number
+  totalEpisodes?: number
+  currentEpisodeIndex?: number
   favorite?: boolean
-  tvMode?: boolean
 }
 
 export default function ZapperOverlay({
   visible, channelName, episodeTitle, season, episode,
-  channelNumber, totalChannels, favorite, tvMode,
+  channelNumber, totalChannels, totalEpisodes, currentEpisodeIndex, favorite,
 }: Props) {
   return (
     <div style={{
@@ -27,14 +28,21 @@ export default function ZapperOverlay({
           {favorite && <span style={styles.star}>★</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {tvMode && <span style={styles.tvBadge}>TV</span>}
           <span style={styles.channelCount}>{channelNumber} / {totalChannels}</span>
         </div>
       </div>
       <div style={styles.bottomInfo}>
         <div style={styles.episodeInfo}>
-          {season > 0 && <span style={styles.season}>S{season} · E{episode}</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {season > 0 && <span style={styles.season}>S{season} · E{episode}</span>}
+            {totalEpisodes !== undefined && (
+              <span style={styles.epCount}>{(currentEpisodeIndex ?? 0) + 1} / {totalEpisodes}</span>
+            )}
+          </div>
           <span style={styles.episodeTitle}>{episodeTitle}</span>
+        </div>
+        <div style={styles.hints}>
+          ← → episodio  ·  ↑ guía  ·  ↓ info
         </div>
       </div>
     </div>
@@ -54,9 +62,10 @@ const styles: Record<string, React.CSSProperties> = {
   channelName: { fontSize: 22, fontWeight: 700, textShadow: '0 2px 8px rgba(0,0,0,0.8)' },
   star: { fontSize: 18, color: '#ffd700' },
   channelCount: { fontSize: 13, color: 'rgba(255,255,255,0.7)', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: 4 },
-  tvBadge: { padding: '2px 8px', background: '#e50914', borderRadius: 4, fontSize: 11, fontWeight: 700, letterSpacing: 1 },
-  bottomInfo: {},
+  bottomInfo: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' },
   episodeInfo: { display: 'flex', flexDirection: 'column', gap: 2 },
   season: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 600 },
   episodeTitle: { fontSize: 16, fontWeight: 600, textShadow: '0 2px 4px rgba(0,0,0,0.8)' },
+  epCount: { fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 600 },
+  hints: { fontSize: 11, color: 'rgba(255,255,255,0.4)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' },
 }
