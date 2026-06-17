@@ -9,6 +9,8 @@ import progressRouter from './routes/progress'
 import favoritesRouter from './routes/favorites'
 import channelsRouter from './routes/channels'
 import foldersRouter from './routes/folders'
+import scannerRouter from './routes/scanner'
+import episodeRouter from './routes/episode'
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3456', 10)
@@ -22,6 +24,8 @@ app.use('/api/progress', progressRouter)
 app.use('/api/favorites', favoritesRouter)
 app.use('/api/channels', channelsRouter)
 app.use('/api/folders', foldersRouter)
+app.use('/api/scanner', scannerRouter)
+app.use('/api/episode', episodeRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() })
