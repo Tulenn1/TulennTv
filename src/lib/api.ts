@@ -77,6 +77,15 @@ export const api = {
     return fetchApi(`/api/library?${params}`)
   },
 
+  async updateSeries(seriesId: string, data: { title?: string; type?: string }): Promise<void> {
+    if (isElectron) return
+    await fetchApi(`/api/library/${seriesId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+  },
+
   async deleteSeries(seriesId: string): Promise<void> {
     if (isElectron) return ipcInvoke(IPC.DELETE_SERIES, seriesId)
     await fetchApi(`/api/library/${seriesId}`, { method: 'DELETE' })
