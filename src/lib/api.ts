@@ -157,6 +157,15 @@ export const api = {
     return res.path
   },
 
+  async openFolder(path: string): Promise<void> {
+    if (isElectron) return
+    await fetchApi('/api/settings/open-folder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path }),
+    })
+  },
+
   async setMediaFolder(path: string): Promise<void> {
     if (isElectron) return
     await fetchApi('/api/settings/media-folder', {

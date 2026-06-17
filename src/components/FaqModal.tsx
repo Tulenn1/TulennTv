@@ -29,46 +29,63 @@ export default function FaqModal({ open, onClose }: Props) {
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>📂 ¿Cómo agrego mis series?</h3>
             <p style={styles.text}>
-              En la pantalla <strong>Biblioteca</strong>, escribí la ruta de la carpeta raíz,
-              elegí el tipo de contenido (Anime/Serie/Película) y presioná <strong>"Escanear"</strong>.
-              O usá <strong>"Elegir carpeta"</strong> para seleccionar visualmente.
+              Andá a <strong>Carpetas</strong> y configurá tu <strong>carpeta principal</strong>
+              donde tenés todos tus videos. Después presioná <strong>"Escanear carpeta principal"</strong>.
             </p>
             <pre style={styles.code}>
-{`📁 Carpeta raíz
+{`📁 CarpetaPrincipal/
  ├── 📁 Naruto/        → canal 1
  │   ├── Naruto Ep 01.mp4
- │   └── Naruto Ep 02.mkv
- └── 📁 One Piece/     → canal 2
-     └── One Piece 001.mp4`}
+ │   ├── Naruto Ep 02.mkv
+ │   └── poster.jpg    ← carátula
+ ├── 📁 One Piece/     → canal 2
+ │   └── OP 001.mp4
+ └── 📁 Shingeki/
+     └── S01E01.mkv`}
             </pre>
+            <p style={styles.text}>
+              Cada <strong>subcarpeta = una serie / un canal</strong>.
+              Los <strong>archivos de video dentro = episodios</strong>.
+            </p>
           </section>
 
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>📝 Nombres de archivos</h3>
             <p style={styles.text}>
-              El escáner detecta el número de episodio automáticamente si el archivo sigue
-              alguno de estos patrones:
+              El escáner detecta el número de episodio automáticamente:
             </p>
             <pre style={styles.code}>
-{`Naruto S01E01.mp4      → Temp 1, Ep 1
-Naruto Ep 05.mp4        → Episodio 5
-Naruto - 12.mkv         → Episodio 12
-naruto-ep01.mp4         → Episodio 1
-Capítulo 7.mp4          → Episodio 7`}
+{`Naruto S01E01.mp4           → Temp 1, Ep 1
+[Subs] Serie - 01.mkv       → Episodio 1 (anime)
+One Piece - 001 [1080p].mp4 → Episodio 1 (limpia etiquetas)
+Shingeki v2.mkv             → Versión 2
+Serie - 01-02.mkv           → Episodio doble`}
             </pre>
             <p style={styles.text}>
               💡 Si los archivos <strong>no tienen número</strong>, el escáner asigna 1, 2, 3...
-              por orden alfabético. <strong>No es recomendable</strong> — mejor usar nombres
-              con número visible.
+              por orden alfabético. Mejor usar nombres con número visible.
             </p>
           </section>
 
           <section style={styles.section}>
-            <h3 style={styles.sectionTitle}>📺 Zapping y Modo TV</h3>
+            <h3 style={styles.sectionTitle}>🖼️ Carátulas / Posters</h3>
             <p style={styles.text}>
-              Cada serie es un "canal". Usá las flechas ← → para cambiar entre canales.
-              En <strong>Modo TV</strong> (tecla <strong>T</strong>) cada canal reproduce
-              un episodio y automáticamente pasa al siguiente canal (round-robin).
+              Poné un archivo <strong>poster.jpg</strong>, <strong>cover.png</strong> o
+              <strong>folder.jpg</strong> dentro de la carpeta de la serie.
+              La app lo detecta y lo muestra como carátula en la Biblioteca.
+            </p>
+          </section>
+
+          <section style={styles.section}>
+            <h3 style={styles.sectionTitle}>📺 Zapping</h3>
+            <p style={styles.text}>
+              Cada serie es un "canal". Usá las flechas <strong>← →</strong> para cambiar entre canales.
+              Al terminar un episodio, automáticamente pasa al <strong>siguiente canal</strong>
+              con el siguiente episodio (rotación tipo TV).
+            </p>
+            <p style={styles.text}>
+              El progreso se guarda automáticamente: si cambias de canal y volvés,
+              retomás desde donde lo dejaste.
             </p>
           </section>
 
@@ -79,7 +96,6 @@ Capítulo 7.mp4          → Episodio 7`}
                 ['← →', 'Cambiar canal'],
                 ['↑', 'Abrir guía de canales'],
                 ['Espacio', 'Play / Pausa'],
-                ['T', 'Alternar modo TV'],
                 ['F', 'Pantalla completa'],
                 ['ESC', 'Volver a biblioteca'],
               ].map(([key, action]) => (
@@ -94,7 +110,7 @@ Capítulo 7.mp4          → Episodio 7`}
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>💡 WSL (Windows Subsystem for Linux)</h3>
             <p style={styles.text}>
-              Las rutas de Windows se escriben como rutas Linux:
+              Si estás usando WSL, las rutas de Windows se escriben así:
             </p>
             <pre style={styles.code}>
 {`C:\Users\Benja\Videos
@@ -103,18 +119,24 @@ Capítulo 7.mp4          → Episodio 7`}
           </section>
 
           <section style={styles.section}>
-            <h3 style={styles.sectionTitle}>📱 Smart TV</h3>
+            <h3 style={styles.sectionTitle}>📱 Smart TV / Otros dispositivos</h3>
             <p style={styles.text}>
-              Iniciá la app de escritorio, andá a <strong>"Conectar TV"</strong> y abrí la URL
-              en el navegador de tu Smart TV.
+              Una vez que el servidor está corriendo, abrí la IP que aparece en la consola
+              desde el navegador de cualquier dispositivo en la misma red:
+            </p>
+            <pre style={styles.code}>
+{`http://192.168.1.100:3456`}
+            </pre>
+            <p style={styles.text}>
+              No necesitas instalar nada en los clientes — solo un navegador.
             </p>
           </section>
 
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>👤 Perfiles</h3>
             <p style={styles.text}>
-              Cada perfil tiene su propio historial de reproducción y series favoritas.
-              Ideal si compartís la PC o la TV.
+              Cada perfil tiene su propio historial de reproducción, progreso y favoritos.
+              Ideal si compartís el servidor con más personas.
             </p>
           </section>
         </div>

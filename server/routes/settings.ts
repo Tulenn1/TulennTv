@@ -20,4 +20,20 @@ router.put('/media-folder', (req: Request, res: Response) => {
   res.json({ success: true, path })
 })
 
+router.post('/open-folder', (req: Request, res: Response) => {
+  const { path } = req.body
+  if (!path) {
+    res.status(400).json({ error: 'INVALID_INPUT', message: 'path is required' })
+    return
+  }
+  try {
+    const { exec } = require('child_process')
+    const cmd = process.platform === 'win32' ? `explorer "${path}"` : `xdg-open "${path}"`
+    exec(cmd)
+    res.json({ success: true })
+  } catch {
+    res.json({ success: false })
+  }
+})
+
 export default router

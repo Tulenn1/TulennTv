@@ -113,6 +113,22 @@ export default function Folders() {
             Todos tus videos se organizan dentro de esta carpeta. La app escanea automáticamente las subcarpetas.
           </p>
 
+          <div style={styles.exampleBox}>
+            <strong>📂 Estructura recomendada:</strong>
+            <pre style={styles.exampleCode}>
+{mediaFolder || '📁 CarpetaPrincipal/'}
+ ├── 📁 Naruto/            ← se convierte en un canal
+ │    ├── ep01.mp4         ← se detecta como episodio
+ │    ├── ep02.mkv
+ │    └── poster.jpg       ← carátula (opcional)
+ ├── 📁 One Piece/
+ │    ├── [Subs] OP - 001.mkv
+ │    └── [Subs] OP - 002.mkv
+ └── 📁 Shingeki/
+      └── poster.jpg
+      └── Shingeki S01E01.mkv</pre>
+          </div>
+
           {editingFolder ? (
             <div style={styles.folderEditRow}>
               <input
@@ -134,10 +150,17 @@ export default function Folders() {
           ) : (
             <div style={styles.folderDisplayRow}>
               <span style={styles.folderPath}>{mediaFolder || '(sin configurar)'}</span>
-              <button style={styles.btn} onClick={() => {
-                setFolderInput(mediaFolder)
-                setEditingFolder(true)
-              }}>✏️</button>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {mediaFolder && (
+                  <button style={styles.btn} onClick={() => api.openFolder(mediaFolder)} title="Abrir carpeta">
+                    📂
+                  </button>
+                )}
+                <button style={styles.btn} onClick={() => {
+                  setFolderInput(mediaFolder)
+                  setEditingFolder(true)
+                }}>✏️</button>
+              </div>
             </div>
           )}
 
@@ -220,6 +243,8 @@ const styles: Record<string, React.CSSProperties> = {
   folderPath: { fontSize: 14, color: '#a0a0a0', fontFamily: 'monospace', flex: 1 },
   input: { padding: '8px 12px', background: '#141414', border: '1px solid #333', borderRadius: 6, color: '#fff', fontSize: 14 },
   btn: { padding: '8px 16px', background: '#333', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap' },
+  exampleBox: { background: '#141414', borderRadius: 6, padding: 12, marginBottom: 12, fontSize: 13, color: '#aaa', lineHeight: 1.6 },
+  exampleCode: { fontFamily: 'monospace', fontSize: 12, color: '#888', marginTop: 8, padding: '8px 12px', background: '#0a0a0a', borderRadius: 4, overflow: 'auto' },
   browserOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
   browserModal: { background: '#1f1f1f', borderRadius: 12, width: '60%', maxWidth: 600, maxHeight: '70vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   browserHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #333', fontSize: 14, fontFamily: 'monospace' },
