@@ -18,6 +18,10 @@ export default function Library() {
   const [scanType, setScanType] = useState('auto')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [selectedSeries, setSelectedSeries] = useState<Series | null>(null)
+  const [overview, setOverview] = useState('')
+  const [episodeCount, setEpisodeCount] = useState(0)
+  const [episodes, setEpisodes] = useState<{ season: number; episode: number; title: string; duration: number }[]>([])
 
   const loadLibrary = useCallback(async (): Promise<number> => {
     if (!profile) return 0
@@ -69,8 +73,19 @@ export default function Library() {
     if (folder) handleScan(folder)
   }
 
-  const handleSelect = (s: Series) => {
-    navigate(`/zapper?series=${s.id}`)
+  const handleSelect = async (s: Series) => {
+    setSelectedSeries(s)
+    setOverview('')
+    setEpisodeCount(0)
+    setEpisodes([])
+    api.getSeriesOverview(s.id).then(setOverview)
+    try {
+      const detail = await api.getSeries(s.id, profile?.id)
+      if (detail) {
+        setEpisodeCount(detail.episodes.length)
+        setEpisodes(detail.episodes)
+      }
+    } catch {}
   }
 
   const handleDeleteSeries = async (s: Series) => {
@@ -200,6 +215,56 @@ export default function Library() {
           </div>
         )}
       </div>
+
+      {selectedSeries && (
+        <div style={styles.modalOverlay} onClick={() => setSelectedSeries(null)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <button style={styles.modalClose} onClick={() => setSelectedSeries(null)}>✕</button>
+            <div style={styles.modalBody}>
+              {selectedSeries.poster ? (
+                <img src={`/api/poster/${selectedSeries.id}`} alt={selectedSeries.title} style={styles.modalPoster}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+              ) : (
+                <div style={styles.modalPlaceholder}>
+                  {selectedSeries.title.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div style={styles.modalInfo}>
+                <h2 style={styles.modalTitle}>{selectedSeries.title}</h2>
+                <div style={styles.modalTags}>
+                  <span style={styles.modalTag}>{TYPE_ICONS[selectedSeries.type]} {TYPE_LABELS[selectedSeries.type]}</span>
+                  <span style={styles.modalTag}>📺 {episodeCount} episodios</span>
+                </div>
+                {overview ? (
+                  <p style={styles.modalDesc}>{overview}</p>
+                ) : (
+                  <p style={{ ...styles.modalDesc, color: '#666' }}>Cargando información...</p>
+                )}
+                {episodes.length > 0 && (
+                  <div style={styles.episodeList}>
+                    <div style={styles.episodeListHeader}>
+                      <span>Episodios detectados ({episodeCount})</span>
+                    </div>
+                    {episodes.map((ep, i) => (
+                      <div key={i} style={styles.episodeRow}>
+                        <span style={styles.epNum}>S{ep.season}E{ep.episode}</span>
+                        <span style={styles.epTitle}>{ep.title.slice(0, 40)}</span>
+                        <span style={styles.epDur}>{ep.duration ? `${Math.round(ep.duration / 60)}m` : '-'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8, paddingTop: 12 }}>
+                  <button style={styles.modalPlayBtn} onClick={() => navigate(`/zapper?series=${selectedSeries.id}`)}>
+                    ▶ Reproducir
+                  </button>
+                  <button style={styles.modalCancelBtn} onClick={() => setSelectedSeries(null)}>Cancelar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -232,4 +297,37 @@ const styles: Record<string, React.CSSProperties> = {
   error: { padding: '10px 16px', background: '#2a1010', border: '1px solid #e50914', borderRadius: 8, color: '#f88', fontSize: 13 },
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#a0a0a0' },
   empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 },
+  modalOverlay: {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
+    background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+  },
+  modal: {
+    background: '#1a1a1a', borderRadius: 12, maxWidth: 600, width: '100%',
+    border: '1px solid #333', overflow: 'hidden', position: 'relative' as const,
+  },
+  modalClose: {
+    position: 'absolute', top: 12, right: 12, zIndex: 1,
+    background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff',
+    width: 32, height: 32, borderRadius: '50%', fontSize: 16, cursor: 'pointer',
+  },
+  modalBody: { display: 'flex', gap: 20, padding: 20 },
+  modalPoster: { width: 160, height: 240, borderRadius: 8, objectFit: 'cover', flexShrink: 0 },
+  modalPlaceholder: {
+    width: 160, height: 240, borderRadius: 8, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 64, fontWeight: 800, color: '#333', background: '#0f0f0f',
+  },
+  modalInfo: { flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 },
+  modalTitle: { fontSize: 22, fontWeight: 700, margin: 0 },
+  modalTags: { display: 'flex', gap: 8, flexWrap: 'wrap' },
+  modalTag: { padding: '4px 10px', background: '#0f0f0f', borderRadius: 6, fontSize: 12, color: '#aaa' },
+  modalDesc: { fontSize: 14, color: '#aaa', lineHeight: 1.7, margin: 0, flex: 1 },
+  modalPlayBtn: { padding: '10px 24px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
+  modalCancelBtn: { padding: '10px 24px', background: '#333', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
+  episodeList: { display: 'flex', flexDirection: 'column', gap: 2, background: '#0f0f0f', borderRadius: 6, padding: 8, maxHeight: 160, overflow: 'auto' },
+  episodeListHeader: { fontSize: 12, color: '#888', fontWeight: 600, padding: '4px 6px 8px', borderBottom: '1px solid #222', marginBottom: 4 },
+  episodeRow: { display: 'flex', alignItems: 'center', gap: 8, padding: '3px 6px', fontSize: 12, borderRadius: 4 },
+  epNum: { color: '#e50914', fontWeight: 600, minWidth: 50, fontSize: 11 },
+  epTitle: { flex: 1, color: '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
+  epDur: { color: '#555', fontSize: 11, minWidth: 30, textAlign: 'right' as const },
 }
