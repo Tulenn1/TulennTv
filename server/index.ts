@@ -1,7 +1,6 @@
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
-import os from 'os'
 import { getDb, closeDb } from './database'
 import profilesRouter from './routes/profiles'
 import libraryRouter from './routes/library'
@@ -14,6 +13,8 @@ import episodeRouter from './routes/episode'
 import videoRouter from './routes/video'
 import { streamVideo } from './streamer'
 import { ensureAutoChannels } from './channels'
+import { backupDatabase, cleanupOldBackups } from './backup'
+import { getLocalIp } from './utils/network'
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3456', 10)
@@ -49,20 +50,11 @@ for (const route of SPA_PATHS) {
   })
 }
 
-function getLocalIp(): string {
-  const interfaces = os.networkInterfaces()
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name] || []) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address
-      }
-    }
-  }
-  return '127.0.0.1'
-}
-
 getDb()
 ensureAutoChannels()
+cleanupOldBackups()
+backupDatabase()
+setInterval(() => backupDatabase(), 24 * 60 * 60 * 1000)
 app.listen(PORT, '0.0.0.0', () => {
   const ip = getLocalIp()
   console.log(`\n  🎬 TulennTv Server`)
