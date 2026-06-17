@@ -5,9 +5,12 @@ import { createSchema } from './schema'
 
 let db: Database.Database | null = null
 
+const isPkg = typeof process.pkg !== 'undefined'
+const BASE_DIR = isPkg ? path.dirname(process.execPath) : process.cwd()
+
 const DB_DIR = process.env.NODE_ENV === 'test'
-  ? path.join(process.cwd(), 'data', 'test')
-  : path.join(process.cwd(), 'data')
+  ? path.join(BASE_DIR, 'data', 'test')
+  : path.join(BASE_DIR, 'data')
 
 const DB_PATH = path.join(DB_DIR, 'tulenntv.db')
 

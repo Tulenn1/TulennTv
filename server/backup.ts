@@ -2,8 +2,11 @@ import fs from 'fs'
 import path from 'path'
 import { getDb, closeDb } from './database'
 
-const DB_PATH = path.join(process.cwd(), 'data', 'tulenntv.db')
-const BACKUP_DIR = path.join(process.cwd(), 'data', 'backups')
+const isPkg = typeof process.pkg !== 'undefined'
+const BASE_DIR = isPkg ? path.dirname(process.execPath) : process.cwd()
+
+const DB_PATH = path.join(BASE_DIR, 'data', 'tulenntv.db')
+const BACKUP_DIR = path.join(BASE_DIR, 'data', 'backups')
 
 export function backupDatabase(): string | null {
   if (!fs.existsSync(DB_PATH)) {

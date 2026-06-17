@@ -22,6 +22,9 @@ import { getLocalIp } from './utils/network'
 const app = express()
 const PORT = parseInt(process.env.PORT || '3456', 10)
 
+const isPkg = typeof process.pkg !== 'undefined'
+const BASE_DIR = isPkg ? path.dirname(process.execPath) : process.cwd()
+
 app.use(cors())
 app.use(express.json())
 
@@ -47,12 +50,12 @@ app.get(/^\/api\/serve-file\/(.+)$/, (req, res) => {
   streamVideo(filePath, req, res)
 })
 
-app.use(express.static(path.join(process.cwd(), 'dist')))
+app.use(express.static(path.join(BASE_DIR, 'dist')))
 
 const SPA_PATHS = ['/', '/profiles', '/library', '/zapper', '/guide', '/channels', '/folders', '/tv-connect']
 for (const route of SPA_PATHS) {
   app.get(route, (_req, res) => {
-    res.sendFile(path.join(process.cwd(), 'dist', 'index.html'))
+    res.sendFile(path.join(BASE_DIR, 'dist', 'index.html'))
   })
 }
 
