@@ -23,6 +23,8 @@ export default function Zapper() {
   const [volume, setVolume] = useState(0.8)
   const [showControls, setShowControls] = useState(true)
   const [showGuide, setShowGuide] = useState(false)
+  const [showInfo, setShowInfo] = useState(false)
+  const [overview, setOverview] = useState('')
   const [loading, setLoading] = useState(true)
   const controlsTimeout = useRef<ReturnType<typeof setTimeout>>()
   const playerRef = useRef<HTMLVideoElement>(null)
@@ -132,6 +134,14 @@ export default function Zapper() {
           break
         case 'ArrowUp':
           setShowGuide(prev => !prev)
+          setShowInfo(false)
+          break
+        case 'ArrowDown':
+          setShowInfo(prev => !prev)
+          setShowGuide(false)
+          if (!overview && channels[currentIndex]) {
+            api.getSeriesOverview(channels[currentIndex].id).then(setOverview)
+          }
           break
         case ' ':
           e.preventDefault()
@@ -259,6 +269,26 @@ export default function Zapper() {
         onMenu={() => navigate('/library')}
       />
 
+      {showInfo && (
+        <div style={styles.infoOverlay} onClick={() => setShowInfo(false)}>
+          <div style={styles.infoPanel} onClick={e => e.stopPropagation()}>
+            <div style={styles.infoHeader}>
+              <span>{channels[currentIndex]?.title}</span>
+              <button style={styles.closeBtn} onClick={() => setShowInfo(false)}>✕</button>
+            </div>
+            {overview ? (
+              <p style={styles.infoText}>{overview}</p>
+            ) : (
+              <p style={{ ...styles.infoText, color: '#666' }}>Cargando información...</p>
+            )}
+            <div style={styles.infoMeta}>
+              <span>{channels[currentIndex]?.type}</span>
+              <span>{episodeQueues[channels[currentIndex]?.id]?.length || 0} episodios</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showGuide && (
         <div style={styles.guideOverlay}>
           <div style={styles.guideHeader}>Guía de Canales</div>
@@ -295,6 +325,19 @@ const styles: Record<string, React.CSSProperties> = {
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: '#a0a0a0' },
   empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a' },
   goBtn: { marginTop: 16, padding: '10px 24px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
+  infoOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', zIndex: 200, padding: 40,
+  },
+  infoPanel: {
+    background: '#1a1a1a', borderRadius: 12, maxWidth: 500, width: '100%',
+    padding: 24, border: '1px solid #333', display: 'flex', flexDirection: 'column', gap: 12,
+  },
+  infoHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 18, fontWeight: 700 },
+  closeBtn: { background: 'transparent', border: 'none', color: '#a0a0a0', fontSize: 18, cursor: 'pointer' },
+  infoText: { fontSize: 14, color: '#ccc', lineHeight: 1.7, margin: 0 },
+  infoMeta: { display: 'flex', gap: 16, fontSize: 12, color: '#888', borderTop: '1px solid #333', paddingTop: 12 },
   guideOverlay: {
     position: 'absolute', top: '10%', left: '10%', right: '10%', bottom: '10%',
     background: 'rgba(10,10,10,0.95)', borderRadius: 12, display: 'flex', flexDirection: 'column',

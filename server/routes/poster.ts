@@ -57,26 +57,63 @@ router.get('/:id', (req: Request, res: Response) => {
   res.status(404).json({ error: 'NOT_FOUND', message: 'No poster' })
 })
 
+async function searchTmdb(title: string, apiKey: string): Promise<any> {
+  const searchUrl = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(title)}&api_key=${apiKey}&language=es`
+  const res = await fetch(searchUrl)
+  const data: any = await res.json()
+  return data.results?.find((r: any) =>
+    (r.media_type === 'tv' || r.media_type === 'movie') && r.poster_path
+  ) || data.results?.[0]
+}
+
 async function fetchTmdbPoster(title: string, apiKey: string, seriesId: string, db: any): Promise<string | null> {
   try {
-    const searchUrl = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(title)}&api_key=${apiKey}&language=es`
-    const searchRes = await fetch(searchUrl)
-    const searchData: any = await searchRes.json()
-
-    const result = searchData.results?.find((r: any) =>
-      (r.media_type === 'tv' || r.media_type === 'movie' || r.media_type === 'anime') &&
-      r.poster_path
-    ) || searchData.results?.[0]
-
+    const result = await searchTmdb(title, apiKey)
     if (result?.poster_path) {
       const url = `${TMDB_IMAGE_BASE}${result.poster_path}`
       db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run(`poster_${seriesId}`, url)
       db.prepare('UPDATE series SET poster = ? WHERE id = ?').run(url, seriesId)
+
+      if (result.overview) {
+        db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run(`overview_${seriesId}`, result.overview)
+      }
       return url
     }
   } catch {}
   return null
 }
+
+router.get('/overview/:id', async (req: Request, res: Response) => {
+  const paramsId = req.params.id as string
+  const db = getDb()
+
+  const cached = db.prepare("SELECT value FROM app_session WHERE key = ?").get(`overview_${paramsId}`) as { value: string } | undefined
+  if (cached) {
+    res.json({ overview: cached.value })
+    return
+  }
+
+  const row = db.prepare('SELECT title FROM series WHERE id = ?').get(paramsId) as { title: string } | undefined
+  if (!row) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Series not found' })
+    return
+  }
+
+  const tmdbKey = db.prepare("SELECT value FROM app_session WHERE key = ?").get('tmdb_key') as { value: string } | undefined
+  if (tmdbKey?.value) {
+    try {
+      const result = await searchTmdb(row.title, tmdbKey.value)
+      const overview = result?.overview || ''
+      if (overview) {
+        db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run(`overview_${paramsId}`, overview)
+      }
+      res.json({ overview })
+      return
+    } catch {}
+  }
+
+  res.json({ overview: '' })
+})
 
 router.post('/fetch-all', async (req: Request, res: Response) => {
   const db = getDb()

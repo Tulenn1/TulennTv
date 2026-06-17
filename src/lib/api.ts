@@ -179,6 +179,11 @@ export const api = {
     })
   },
 
+  async getSeriesOverview(seriesId: string): Promise<string> {
+    const res = await fetchApi<{ overview: string }>(`/api/poster/overview/${seriesId}`)
+    return res.overview
+  },
+
   async fetchAllPosters(tmdbKey?: string): Promise<{ found: number; total: number }> {
     return fetchApi('/api/poster/fetch-all', {
       method: 'POST',
