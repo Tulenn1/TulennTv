@@ -64,6 +64,22 @@ router.get('/:id', (req: Request, res: Response) => {
   res.json({ ...series, episodes, favorite, progress })
 })
 
+router.patch('/:id', (req: Request, res: Response) => {
+  const { title, type } = req.body
+  const db = getDb()
+  if (type && !['anime', 'series', 'movie'].includes(type)) {
+    res.status(400).json({ error: 'INVALID_TYPE', message: 'Type must be anime, series, or movie' })
+    return
+  }
+  if (title) {
+    db.prepare('UPDATE series SET title = ? WHERE id = ?').run(title, req.params.id)
+  }
+  if (type) {
+    db.prepare('UPDATE series SET type = ? WHERE id = ?').run(type, req.params.id)
+  }
+  res.json({ success: true })
+})
+
 router.delete('/:id', (req: Request, res: Response) => {
   const db = getDb()
   const result = db.prepare('DELETE FROM series WHERE id = ?').run(req.params.id)

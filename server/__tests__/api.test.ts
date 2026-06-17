@@ -1,5 +1,7 @@
 import request from 'supertest'
 import express from 'express'
+import fs from 'fs'
+import path from 'path'
 import { getDb, closeDb } from '../database'
 import profilesRouter from '../routes/profiles'
 
@@ -9,6 +11,10 @@ app.use('/api/profiles', profilesRouter)
 
 beforeAll(() => {
   process.env.NODE_ENV = 'test'
+  const testDir = path.join(process.cwd(), 'data', 'test')
+  if (fs.existsSync(testDir)) {
+    fs.rmSync(testDir, { recursive: true })
+  }
   getDb()
 })
 

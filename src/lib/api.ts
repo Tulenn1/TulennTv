@@ -77,6 +77,15 @@ export const api = {
     return fetchApi(`/api/library?${params}`)
   },
 
+  async updateSeries(seriesId: string, data: { title?: string; type?: string }): Promise<void> {
+    if (isElectron) return
+    await fetchApi(`/api/library/${seriesId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+  },
+
   async deleteSeries(seriesId: string): Promise<void> {
     if (isElectron) return ipcInvoke(IPC.DELETE_SERIES, seriesId)
     await fetchApi(`/api/library/${seriesId}`, { method: 'DELETE' })
@@ -148,6 +157,58 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: dirPath }),
     })
+  },
+
+  // Media Folder
+  async getMediaFolder(): Promise<string> {
+    if (isElectron) return Promise.resolve('')
+    const res = await fetchApi<{ path: string }>('/api/settings/media-folder')
+    return res.path
+  },
+
+  async getTmdbKey(): Promise<string> {
+    const res = await fetchApi<{ key: string }>('/api/settings/tmdb-key')
+    return res.key
+  },
+
+  async setTmdbKey(key: string): Promise<void> {
+    await fetchApi('/api/settings/tmdb-key', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    })
+  },
+
+  async fetchAllPosters(tmdbKey?: string): Promise<{ found: number; total: number }> {
+    return fetchApi('/api/poster/fetch-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tmdbKey }),
+    })
+  },
+
+  async openFolder(path: string): Promise<void> {
+    if (isElectron) return
+    await fetchApi('/api/settings/open-folder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path }),
+    })
+  },
+
+  async setMediaFolder(path: string): Promise<void> {
+    if (isElectron) return
+    await fetchApi('/api/settings/media-folder', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path }),
+    })
+  },
+
+  async browseDirectory(dir: string): Promise<{ current: string; parent: string | null; items: { name: string; path: string; isDir: boolean }[] }> {
+    if (isElectron) return { current: dir, parent: null, items: [] }
+    const encoded = encodeURIComponent(dir)
+    return fetchApi(`/api/browse/${encoded}`)
   },
 
   // Channels
