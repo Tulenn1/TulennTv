@@ -334,6 +334,10 @@ export default function Folders() {
                 Es <strong>gratis</strong> y se obtiene en:
               </p>
               <pre style={helpStyles.code}>https://www.themoviedb.org/settings/api</pre>
+              <p style={{ ...helpStyles.text, fontSize: 12, color: '#888' }}>
+                📝 En el registro, donde pide <strong>"Application URL"</strong> poné <kbd style={helpStyles.kbd}>http://localhost:3456</kbd> o cualquier URL.<br/>
+                Lo que importa es la <strong>API Key (v3 auth)</strong> que te dan al final.
+              </p>
 
               <label style={{ fontSize: 13, color: '#aaa' }}>TMDB API Key:</label>
               <input
