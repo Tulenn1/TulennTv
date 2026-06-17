@@ -14,7 +14,7 @@ export default function Zapper() {
   const [channels, setChannels] = useState<Series[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [currentEpisode, setCurrentEpisode] = useState<Episode | null>(null)
-  const [episodeQueue, setEpisodeQueue] = useState<Record<string, Episode[]>>({})
+  const [episodeQueues, setEpisodeQueues] = useState<Record<string, Episode[]>>({})
   const [episodeIndexMap, setEpisodeIndexMap] = useState<Record<string, number>>({})
   const [playing, setPlaying] = useState(true)
   const [currentTime, setCurrentTime] = useState(0)
@@ -23,12 +23,8 @@ export default function Zapper() {
   const [showControls, setShowControls] = useState(true)
   const [showGuide, setShowGuide] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [initialPos, setInitialPos] = useState<number | undefined>()
-  const [tvMode, setTvMode] = useState(false)
   const controlsTimeout = useRef<ReturnType<typeof setTimeout>>()
   const playerRef = useRef<HTMLVideoElement>(null)
-  const currentIndexRef = useRef(currentIndex)
-  currentIndexRef.current = currentIndex
 
   const loadChannels = useCallback(async () => {
     if (!profile) return
@@ -58,38 +54,79 @@ export default function Zapper() {
 
   useEffect(() => { loadChannels() }, [loadChannels])
 
-  const loadEpisodes = useCallback(async (seriesId: string, index: number) => {
-    if (!profile) return
+  const findEpisodeIndex = (seriesId: string, episodes: Episode[]): number => {
+    const saved = episodeIndexMap[seriesId]
+    if (saved !== undefined) return saved
+    return 0
+  }
+
+  const prefetchEpisodes = useCallback(async (seriesId: string) => {
+    if (!profile || episodeQueues[seriesId]) return
     try {
       const series = await api.getSeries(seriesId, profile.id)
-      if (series && series.episodes.length > 0) {
-        setEpisodeQueue(prev => ({ ...prev, [seriesId]: series.episodes }))
-        const ep = series.episodes[index] || series.episodes[0]
-        setCurrentEpisode(ep)
-        const savedProgress = series.progress
-        if (savedProgress && savedProgress.episodeId === ep.id && !savedProgress.completed) {
-          setInitialPos(savedProgress.position)
-        } else {
-          setInitialPos(undefined)
+      if (series?.episodes.length) {
+        setEpisodeQueues(prev => ({ ...prev, [seriesId]: series.episodes }))
+        const progress = series.progress
+        let epIdx = 0
+        if (progress) {
+          if (progress.completed) {
+            epIdx = series.episodes.findIndex(e => e.id !== progress.episodeId)
+            if (epIdx < 0) epIdx = 0
+          } else {
+            epIdx = series.episodes.findIndex(e => e.id === progress.episodeId)
+            if (epIdx < 0) epIdx = 0
+          }
         }
+        setEpisodeIndexMap(prev => {
+          if (prev[seriesId] !== undefined) return prev
+          return { ...prev, [seriesId]: epIdx }
+        })
       }
-    } catch (err) {
-      console.error('Failed to load episodes:', err)
+    } catch {}
+  }, [profile, episodeQueues])
+
+  const changeToChannel = useCallback(async (idx: number) => {
+    if (idx < 0 || idx >= channels.length) return
+    setCurrentIndex(idx)
+    setShowControls(true)
+    clearTimeout(controlsTimeout.current)
+    controlsTimeout.current = setTimeout(() => setShowControls(false), 3000)
+    setShowGuide(false)
+
+    const seriesId = channels[idx].id
+    if (!episodeQueues[seriesId]) {
+      await prefetchEpisodes(seriesId)
     }
-  }, [profile])
+    const episodes = episodeQueues[seriesId] || []
+    const epIdx = findEpisodeIndex(seriesId, episodes)
+    setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: epIdx }))
+    const ep = episodes[epIdx]
+    if (ep) setCurrentEpisode(ep)
+  }, [channels, episodeQueues, prefetchEpisodes])
 
   useEffect(() => {
-    if (channels.length > 0 && channels[currentIndex]) {
-      setCurrentEpisode(null)
-      const seriesId = channels[currentIndex].id
-      const idx = episodeIndexMap[seriesId] || 0
-      loadEpisodes(seriesId, idx)
-    }
-  }, [channels, currentIndex, loadEpisodes, episodeIndexMap])
+    if (channels.length === 0 || loading) return
+    const seriesId = channels[currentIndex].id
+    prefetchEpisodes(seriesId)
+  }, [channels, currentIndex, loading, prefetchEpisodes])
 
-  const currentChannel = channels[currentIndex]
-  const queue = currentChannel ? (episodeQueue[currentChannel.id] || []) : []
-  const currentEpIndex = currentChannel ? (episodeIndexMap[currentChannel.id] || 0) : 0
+  useEffect(() => {
+    if (channels.length === 0 || loading) return
+    const seriesId = channels[currentIndex].id
+    const episodes = episodeQueues[seriesId]
+    if (!episodes) return
+    const epIdx = findEpisodeIndex(seriesId, episodes)
+    const ep = episodes[epIdx]
+    if (ep && (!currentEpisode || currentEpisode.id !== ep.id)) {
+      setCurrentEpisode(ep)
+    }
+  }, [channels, currentIndex, episodeQueues, loading, currentEpisode])
+
+  const changeChannel = useCallback((direction: 1 | -1) => {
+    if (channels.length === 0) return
+    const newIndex = (currentIndex + direction + channels.length) % channels.length
+    changeToChannel(newIndex)
+  }, [channels, currentIndex, changeToChannel])
 
   const saveProgress = useCallback(async (completed?: boolean) => {
     if (!profile || !currentEpisode) return
@@ -98,19 +135,6 @@ export default function Zapper() {
       await api.saveProgress(profile.id, currentEpisode.id, currentTime, isCompleted)
     } catch {}
   }, [profile, currentEpisode, currentTime, duration])
-
-  const changeChannel = useCallback((direction: 1 | -1) => {
-    if (channels.length === 0) return
-    const newIndex = (currentIndex + direction + channels.length) % channels.length
-    setCurrentIndex(newIndex)
-    setCurrentTime(0)
-    setDuration(0)
-    setInitialPos(undefined)
-    setShowGuide(false)
-    setShowControls(true)
-    clearTimeout(controlsTimeout.current)
-    controlsTimeout.current = setTimeout(() => setShowControls(false), 3000)
-  }, [channels, currentIndex])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -141,11 +165,8 @@ export default function Zapper() {
             ? document.exitFullscreen()
             : document.documentElement.requestFullscreen()
           break
-        case 't':
-        case 'T':
-          setTvMode(prev => !prev)
-          break
         case 'Escape':
+          saveProgress()
           navigate('/library')
           break
       }
@@ -159,35 +180,29 @@ export default function Zapper() {
     }
   }, [changeChannel, playing, navigate, saveProgress])
 
+  useEffect(() => {
+    const prefetchNearby = async () => {
+      if (channels.length < 2) return
+      const next = (currentIndex + 1) % channels.length
+      const prev = (currentIndex - 1 + channels.length) % channels.length
+      await Promise.all([
+        prefetchEpisodes(channels[next].id),
+        prefetchEpisodes(channels[prev].id),
+      ])
+    }
+    prefetchNearby()
+  }, [currentIndex, channels, prefetchEpisodes])
+
   const advanceEpisode = useCallback(async () => {
-    if (!currentChannel) return
-    const seriesId = currentChannel.id
+    if (!channels[currentIndex]) return
+    const seriesId = channels[currentIndex].id
     const currentIdx = episodeIndexMap[seriesId] || 0
-    const epQueue = episodeQueue[seriesId] || []
 
     await saveProgress(true)
 
-    if (tvMode) {
-      setEpisodeIndexMap(prev => ({
-        ...prev,
-        [seriesId]: currentIdx + 1,
-      }))
-      changeChannel(1)
-    } else {
-      const nextIdx = currentIdx + 1
-      if (nextIdx < epQueue.length) {
-        setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: nextIdx }))
-        if (epQueue[nextIdx]) {
-          setCurrentEpisode(epQueue[nextIdx])
-          setCurrentTime(0)
-          setDuration(0)
-          setInitialPos(undefined)
-        }
-      } else {
-        changeChannel(1)
-      }
-    }
-  }, [currentChannel, episodeIndexMap, episodeQueue, tvMode, saveProgress, changeChannel])
+    setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: currentIdx + 1 }))
+    changeChannel(1)
+  }, [channels, currentIndex, episodeIndexMap, saveProgress, changeChannel])
 
   const handleEnded = useCallback(() => {
     advanceEpisode()
@@ -232,30 +247,23 @@ export default function Zapper() {
       clearTimeout(controlsTimeout.current)
       controlsTimeout.current = setTimeout(() => setShowControls(false), 3000)
     }}>
-      {currentEpisode ? (
-        <Player
-          src={getVideoUrl(currentEpisode.path)}
-          onTimeUpdate={handleTimeUpdate}
-          onEnded={handleEnded}
-          autoPlay={playing}
-          initialPosition={initialPos}
-        />
-      ) : (
-        <div style={styles.noVideo}>
-          <p>Cargando episodio...</p>
-        </div>
-      )}
+      <Player
+        src={currentEpisode ? getVideoUrl(currentEpisode.path) : ''}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        autoPlay={playing}
+        initialPosition={undefined}
+      />
 
       <ZapperOverlay
         visible={showControls}
-        channelName={currentChannel?.title || ''}
+        channelName={channels[currentIndex]?.title || ''}
         episodeTitle={currentEpisode?.title || ''}
         season={currentEpisode?.season || 0}
         episode={currentEpisode?.episode || 0}
         channelNumber={currentIndex + 1}
         totalChannels={channels.length}
-        favorite={(currentChannel as any)?.favorite}
-        tvMode={tvMode}
+        favorite={(channels[currentIndex] as any)?.favorite}
       />
 
       <PlayerControls
@@ -275,32 +283,13 @@ export default function Zapper() {
         onMenu={() => navigate('/library')}
       />
 
-      <div style={styles.modeContainer}>
-        <button
-          style={{
-            ...styles.tvModeBtn,
-            background: tvMode ? '#e50914' : '#333',
-          }}
-          onClick={() => setTvMode(prev => !prev)}
-          title="T: alternar modo"
-        >
-          {tvMode ? '📺 TV' : '▶ Normal'}
-        </button>
-        <span style={styles.modeHint}>
-          {tvMode ? '1 ep → sig. canal' : 'todos los eps'}
-        </span>
-      </div>
-
       {showGuide && (
         <div style={styles.guideOverlay}>
-          <div style={styles.guideHeader}>
-            Guía de Canales
-            {tvMode && <span style={{ fontSize: 12, color: '#e50914', marginLeft: 12 }}>Modo TV</span>}
-          </div>
+          <div style={styles.guideHeader}>Guía de Canales</div>
           <div style={styles.guideList}>
             {channels.map((ch, idx) => {
               const epIdx = episodeIndexMap[ch.id] || 0
-              const epList = episodeQueue[ch.id] || []
+              const epList = episodeQueues[ch.id] || []
               const currentEp = epList[epIdx]
               return (
                 <button
@@ -309,7 +298,7 @@ export default function Zapper() {
                     ...styles.guideItem,
                     background: idx === currentIndex ? '#e50914' : '#1f1f1f',
                   }}
-                  onClick={() => { setCurrentIndex(idx); setShowGuide(false) }}
+                  onClick={() => changeToChannel(idx)}
                 >
                   <span style={styles.chNum}>{idx + 1}</span>
                   <span style={{ flex: 1 }}>{ch.title}</span>
@@ -330,19 +319,6 @@ const styles: Record<string, React.CSSProperties> = {
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', color: '#a0a0a0' },
   empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a' },
   goBtn: { marginTop: 16, padding: '10px 24px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
-  noVideo: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: '#555' },
-  modeContainer: {
-    position: 'absolute', top: 80, right: 20, zIndex: 100,
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-  },
-  tvModeBtn: {
-    padding: '6px 14px', border: 'none', color: '#fff', borderRadius: 6,
-    fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: 0.8,
-  },
-  modeHint: {
-    fontSize: 10, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap' as const,
-    letterSpacing: 0.5,
-  },
   guideOverlay: {
     position: 'absolute', top: '10%', left: '10%', right: '10%', bottom: '10%',
     background: 'rgba(10,10,10,0.95)', borderRadius: 12, display: 'flex', flexDirection: 'column',
