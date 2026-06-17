@@ -21,6 +21,7 @@ export default function Library() {
   const [selectedSeries, setSelectedSeries] = useState<Series | null>(null)
   const [overview, setOverview] = useState('')
   const [episodeCount, setEpisodeCount] = useState(0)
+  const [episodes, setEpisodes] = useState<{ season: number; episode: number; title: string; duration: number }[]>([])
 
   const loadLibrary = useCallback(async (): Promise<number> => {
     if (!profile) return 0
@@ -76,10 +77,14 @@ export default function Library() {
     setSelectedSeries(s)
     setOverview('')
     setEpisodeCount(0)
+    setEpisodes([])
     api.getSeriesOverview(s.id).then(setOverview)
     try {
       const detail = await api.getSeries(s.id, profile?.id)
-      if (detail) setEpisodeCount(detail.episodes.length)
+      if (detail) {
+        setEpisodeCount(detail.episodes.length)
+        setEpisodes(detail.episodes)
+      }
     } catch {}
   }
 
@@ -235,7 +240,21 @@ export default function Library() {
                 ) : (
                   <p style={{ ...styles.modalDesc, color: '#666' }}>Cargando información...</p>
                 )}
-                <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 16 }}>
+                {episodes.length > 0 && (
+                  <div style={styles.episodeList}>
+                    <div style={styles.episodeListHeader}>
+                      <span>Episodios detectados ({episodeCount})</span>
+                    </div>
+                    {episodes.map((ep, i) => (
+                      <div key={i} style={styles.episodeRow}>
+                        <span style={styles.epNum}>S{ep.season}E{ep.episode}</span>
+                        <span style={styles.epTitle}>{ep.title.slice(0, 40)}</span>
+                        <span style={styles.epDur}>{ep.duration ? `${Math.round(ep.duration / 60)}m` : '-'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8, paddingTop: 12 }}>
                   <button style={styles.modalPlayBtn} onClick={() => navigate(`/zapper?series=${selectedSeries.id}`)}>
                     ▶ Reproducir
                   </button>
@@ -305,4 +324,10 @@ const styles: Record<string, React.CSSProperties> = {
   modalDesc: { fontSize: 14, color: '#aaa', lineHeight: 1.7, margin: 0, flex: 1 },
   modalPlayBtn: { padding: '10px 24px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
   modalCancelBtn: { padding: '10px 24px', background: '#333', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
+  episodeList: { display: 'flex', flexDirection: 'column', gap: 2, background: '#0f0f0f', borderRadius: 6, padding: 8, maxHeight: 160, overflow: 'auto' },
+  episodeListHeader: { fontSize: 12, color: '#888', fontWeight: 600, padding: '4px 6px 8px', borderBottom: '1px solid #222', marginBottom: 4 },
+  episodeRow: { display: 'flex', alignItems: 'center', gap: 8, padding: '3px 6px', fontSize: 12, borderRadius: 4 },
+  epNum: { color: '#e50914', fontWeight: 600, minWidth: 50, fontSize: 11 },
+  epTitle: { flex: 1, color: '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
+  epDur: { color: '#555', fontSize: 11, minWidth: 30, textAlign: 'right' as const },
 }
