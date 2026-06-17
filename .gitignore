@@ -12,3 +12,5 @@ agents-stack/
 opencode.json
 docs/pipeline/
 data/
+build-server/
+dist-server/
