@@ -13,6 +13,7 @@ import scannerRouter from './routes/scanner'
 import episodeRouter from './routes/episode'
 import videoRouter from './routes/video'
 import { streamVideo } from './streamer'
+import { ensureAutoChannels } from './channels'
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3456', 10)
@@ -61,6 +62,7 @@ function getLocalIp(): string {
 }
 
 getDb()
+ensureAutoChannels()
 app.listen(PORT, '0.0.0.0', () => {
   const ip = getLocalIp()
   console.log(`\n  🎬 TulennTv Server`)
