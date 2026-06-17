@@ -58,6 +58,16 @@ router.get('/:id', (req: Request, res: Response) => {
   res.json({ ...series, episodes, favorite })
 })
 
+router.delete('/:id', (req: Request, res: Response) => {
+  const db = getDb()
+  const result = db.prepare('DELETE FROM series WHERE id = ?').run(req.params.id)
+  if (result.changes === 0) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Series not found' })
+    return
+  }
+  res.json({ success: true })
+})
+
 router.get('/:id/next', (req: Request, res: Response) => {
   const db = getDb()
   const season = parseInt(req.query.season as string, 10) || 1

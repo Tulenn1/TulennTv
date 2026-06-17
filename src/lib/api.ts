@@ -55,12 +55,12 @@ export const api = {
 
   async getActiveProfile(): Promise<Profile | null> {
     if (isElectron) return ipcInvoke(IPC.GET_ACTIVE_PROFILE)
-    return fetchApi('/api/session/active-profile')
+    return fetchApi('/api/profiles/active')
   },
 
   async setActiveProfile(profileId: string): Promise<void> {
     if (isElectron) return ipcInvoke(IPC.SET_ACTIVE_PROFILE, profileId)
-    await fetchApi('/api/session/active-profile', {
+    await fetchApi('/api/profiles/active', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profileId }),
@@ -75,6 +75,11 @@ export const api = {
     if (search) params.set('search', search)
     if (profileId) params.set('profileId', profileId)
     return fetchApi(`/api/library?${params}`)
+  },
+
+  async deleteSeries(seriesId: string): Promise<void> {
+    if (isElectron) return ipcInvoke(IPC.DELETE_SERIES, seriesId)
+    await fetchApi(`/api/library/${seriesId}`, { method: 'DELETE' })
   },
 
   async getSeries(seriesId: string, profileId?: string): Promise<SeriesWithEpisodes | null> {
