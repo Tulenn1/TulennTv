@@ -9,11 +9,11 @@ Corre como servidor en un notebook Windows y se accede desde cualquier dispositi
 | Capa | Tecnología |
 |------|-----------|
 | Servidor | **Node.js + Express** |
-| Frontend | **React + TypeScript** (SPA, servida estáticamente) |
-| Clientes | Cualquier navegador (TV, tablet, celular, PC) |
+| Frontend | **React + TypeScript** (SPA) |
+| Clientes | Cualquier navegador |
 | Streaming | HTML5 Video + HTTP Range headers |
+| Posters | **TMDB API** (opcional, gratis) |
 | Persistencia | **SQLite** (better-sqlite3) |
-| Servidor OS | Windows 10 / 11 (notebook reciclado) |
 
 ## Requisitos
 
@@ -28,7 +28,7 @@ Corre como servidor en un notebook Windows y se accede desde cualquier dispositi
 git clone https://github.com/Tulenn1/TulennTv.git
 cd TulennTv
 npm install
-npm run build    # compila el frontend React
+npm run build
 ```
 
 **Inicio manual:**
@@ -38,9 +38,8 @@ npm start
 ```
 
 **Auto-inicio (opcional):**
-Ejecutar PowerShell como Administrador:
 ```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+# PowerShell como Administrador
 .\scripts\firewall.ps1
 .\scripts\install-service.ps1
 ```
@@ -57,87 +56,92 @@ La IP se muestra en la consola al iniciar el servidor.
 ## Cómo usarlo
 
 1. **Creá un perfil** — al entrar desde el navegador
-2. **Escaneá tu biblioteca** — ingresá la carpeta raíz donde tenés tus series
-3. **Zappeá** — navegá entre canales con ← → (flechas del teclado)
-4. **Guía de canales** — presioná ↑ para ver todos los canales
+2. **Configurá la carpeta principal** en la sección **Carpetas**
+3. **Escaneá** — la app detecta automáticamente todas las subcarpetas
+4. **Biblioteca** — explorá tus series agrupadas por categoría
+5. **Zapping** — navegá entre episodios con ← →, cambiá de canal con ↑
 
 ## Organización de archivos
 
-El escáner detecta automáticamente la estructura. Cada **subcarpeta = una serie**.
+Cada **subcarpeta = una serie / un canal**.
 Los **archivos de video adentro = episodios**.
 
 ```
-📁 D:/Media/Anime/              ← le indicás esta carpeta a la app
-   ├── 📁 Naruto/               ← se convierte en un "canal"
-   │   ├── Naruto Ep 01.mp4     ← se detecta como episodio
+📁 CarpetaPrincipal/
+   ├── 📁 Naruto/               ← se convierte en un canal
+   │   ├── Naruto Ep 01.mp4     ← episodio 1
    │   ├── Naruto Ep 02.mkv
-   │   └── Naruto S01E03.mkv
-   ├── 📁 One Piece/             ← otro "canal"
-   │   ├── One Piece 001.mp4
-   │   └── One Piece 002.mp4
+   │   └── poster.jpg           ← carátula (opcional)
+   ├── 📁 One Piece/             ← otro canal
+   │   └── [Subs] OP - 001.mkv  ← formato anime
    └── 📁 Shingeki/
-       └── shingeki-ep01.mp4
+       └── Shingeki S01E01.mkv
 ```
 
-**Formatos de video soportados:** `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.m4v`, `.wmv`, `.flv`
+**Formatos de video:** `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.m4v`, `.wmv`, `.flv`
 
-**Detección de episodios:** reconoce `S01E01`, `Ep 01`, `Capítulo 1`, `001`, etc.
+**Detección de episodios:** `S01E01`, `Ep 01`, `Capítulo 1`, `- 01`, `[01]`, `[Grupo] Nombre - 01 [1080p]`
 
-### Atajos de teclado (modo zapping)
+**Posters:** Colocá `poster.jpg`, `cover.png` o `folder.jpg` dentro de la carpeta de la serie.
+Opción: configurar API key de TMDB para obtener carátulas automáticamente.
+
+## Controles (modo zapping)
 
 | Tecla | Acción |
 |-------|--------|
-| ← → | Cambiar canal |
-| ↑ | Abrir guía de canales |
+| ← → | Navegar entre episodios |
+| ↑ | Abrir guía de canales (cambiar de canal) |
+| ↓ | Descripción de la serie |
 | Espacio | Play / Pausa |
 | F | Pantalla completa |
 | ESC | Volver a biblioteca |
+
+## Características
+
+- **Biblioteca agrupada** por Anime / Series / Películas con conteo
+- **Modal de información** con descripción TMDB + lista de episodios detectados
+- **Cambiar tipo** de serie desde la tarjeta (anime/series/película)
+- **Reanudación** desde el segundo exacto donde lo dejaste
+- **Rotación automática** al terminar todos los episodios
+- **Perfiles múltiples** con historial y favoritos independientes
+- **Posters desde TMDB** (opcional, requiere API key gratuita)
+- **Carpeta centralizada** con explorador visual de directorios
 
 ## Arquitectura
 
 ```
 TulennTv/
 ├── server/               # Backend (Node.js + Express)
-│   ├── index.ts          # Entry point del servidor
-│   ├── database.ts       # Conexión SQLite
+│   ├── index.ts          # Entry point
+│   ├── database.ts       # SQLite
 │   ├── schema.ts         # Esquema de tablas
-│   ├── scanner.ts        # Escáner de archivos de video
-│   ├── streamer.ts       # Streaming HTTP con Range headers
+│   ├── scanner.ts        # Escáner de archivos
+│   ├── parser.ts         # Parseo inteligente de nombres
+│   ├── streamer.ts       # Streaming HTTP Range
 │   ├── channels.ts       # Canales automáticos
-│   ├── backup.ts         # Backup automático de DB
-│   ├── utils/
-│   │   └── network.ts    # Detección de IP local
+│   ├── backup.ts         # Backup automático
+│   ├── utils/network.ts  # IP local
 │   └── routes/
-│       ├── profiles.ts   # CRUD de perfiles
-│       ├── library.ts    # Biblioteca y episodios
-│       ├── progress.ts   # Progreso de reproducción
-│       ├── favorites.ts  # Favoritos por perfil
-│       ├── channels.ts   # Canales auto/custom
-│       ├── folders.ts    # Carpetas escaneadas
-│       ├── scanner.ts    # Endpoint de escaneo
-│       ├── episode.ts    # Detalle de episodio
-│       └── video.ts      # Streaming de video
-├── src/                  # Frontend React (SPA)
-│   ├── pages/
-│   │   ├── ProfileSelector.tsx
-│   │   ├── Library.tsx
-│   │   ├── Zapper.tsx
-│   │   ├── Guide.tsx
-│   │   ├── Channels.tsx
-│   │   ├── Folders.tsx
-│   │   └── TvConnect.tsx
-│   ├── components/
-│   │   ├── Player.tsx
-│   │   ├── PlayerControls.tsx
-│   │   ├── SeriesCard.tsx
-│   │   └── ZapperOverlay.tsx
-│   ├── lib/api.ts        # Capa de abstracción HTTP
+│       ├── profiles.ts   # Perfiles
+│       ├── library.ts    # Biblioteca + episodios
+│       ├── progress.ts   # Progreso
+│       ├── favorites.ts  # Favoritos
+│       ├── channels.ts   # Canales
+│       ├── folders.ts    # Carpetas
+│       ├── scanner.ts    # Escaneo
+│       ├── episode.ts    # Episodios
+│       ├── video.ts      # Streaming
+│       ├── poster.ts     # Posters + TMDB
+│       ├── settings.ts   # Configuración
+│       └── browse.ts     # Explorador archivos
+├── src/                  # Frontend React
+│   ├── pages/            # ProfileSelector, Library, Zapper,
+│   │                     # Guide, Channels, Folders, TvConnect
+│   ├── components/       # Player, SeriesCard, ZapperOverlay...
+│   ├── lib/api.ts        # Capa HTTP
 │   └── context/AppContext.tsx
-├── scripts/              # Scripts Windows
-│   ├── start-server.bat
-│   ├── install-service.ps1
-│   └── firewall.ps1
-├── docs/pipeline/        # Plan, specs Gherkin y tareas
+├── scripts/              # start-server.bat, install-service.ps1, firewall.ps1
+├── docs/pipeline/        # Plan, specs y tareas
 └── agents-stack/         # Agentes opencode
 ```
 
@@ -145,14 +149,12 @@ TulennTv/
 
 | Comando | Descripción |
 |---------|-------------|
-| `npm run dev` | Desarrollo (Vite + servidor con hot-reload) |
+| `npm run dev` | Desarrollo (Vite + servidor hot-reload) |
 | `npm run build` | Compila frontend React |
 | `npm start` | Inicia servidor en producción |
-| `npm test` | Ejecuta tests |
+| `npm test` | Ejecuta tests (Jest) |
 
 ## Pipeline de desarrollo (opencode)
-
-Pipeline de 6 etapas con agentes opencode:
 
 ```
 /planner → /spec → /tasks → /implement-all → /pr-ready
