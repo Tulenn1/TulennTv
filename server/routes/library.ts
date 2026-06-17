@@ -49,13 +49,19 @@ router.get('/:id', (req: Request, res: Response) => {
   const episodes = db.prepare('SELECT id, series_id as seriesId, title, path, season, episode, duration FROM episodes WHERE series_id = ? ORDER BY season ASC, episode ASC').all(req.params.id)
 
   let favorite = false
+  let progress = null
   const profileId = req.query.profileId as string | undefined
   if (profileId) {
     const fav = db.prepare('SELECT 1 FROM favorites WHERE profile_id = ? AND series_id = ?').get(profileId, req.params.id)
     favorite = !!fav
+
+    const lastWatched = db.prepare(
+      'SELECT id, profile_id as profileId, episode_id as episodeId, position, completed, watched_at as watchedAt FROM watch_progress WHERE profile_id = ? AND episode_id IN (SELECT id FROM episodes WHERE series_id = ?) ORDER BY watched_at DESC LIMIT 1'
+    ).get(profileId, req.params.id) as any
+    progress = lastWatched || null
   }
 
-  res.json({ ...series, episodes, favorite })
+  res.json({ ...series, episodes, favorite, progress })
 })
 
 router.delete('/:id', (req: Request, res: Response) => {

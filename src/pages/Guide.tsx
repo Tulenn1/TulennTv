@@ -55,8 +55,18 @@ export default function Guide() {
   const [search, setSearch] = useState('')
   const [view, setView] = useState<'list' | 'grid'>('list')
   const [loading, setLoading] = useState(true)
-  const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const [nowMin, setNowMin] = useState(() => {
+    const n = new Date(); return n.getHours() * 60 + n.getMinutes()
+  })
+
+  useEffect(() => {
+    const tick = () => {
+      const n = new Date(); setNowMin(n.getHours() * 60 + n.getMinutes())
+    }
+    const id = setInterval(tick, 30000)
+    return () => clearInterval(id)
+  }, [])
+
   const gridStart = Math.floor(nowMin / SLOT_MINUTES) * SLOT_MINUTES
   const totalSlots = Math.ceil((HOURS_RANGE * 60) / SLOT_MINUTES)
   const gridRef = useRef<HTMLDivElement>(null)
@@ -82,13 +92,6 @@ export default function Guide() {
   }, [profile])
 
   useEffect(() => { loadGuide() }, [loadGuide])
-
-  useEffect(() => {
-    if (view === 'grid' && gridRef.current) {
-      const nowPct = ((nowMin - gridStart) / (HOURS_RANGE * 60)) * 100
-      gridRef.current.scrollLeft = Math.max(0, nowPct * gridRef.current.clientWidth / 100 - 200)
-    }
-  }, [view, nowMin, gridStart])
 
   const visibleChannels = channels.filter(ch => {
     if (!search) return true
@@ -183,7 +186,7 @@ export default function Guide() {
                   <div key={i} style={styles.timeSlot}>
                     {t}
                     {i < totalSlots && nowMin >= gridStart + i * SLOT_MINUTES && nowMin < gridStart + (i + 1) * SLOT_MINUTES && (
-                      <div style={styles.nowLine} />
+                      <div style={styles.nowTick} />
                     )}
                   </div>
                 ))}
@@ -225,6 +228,9 @@ export default function Guide() {
                           </div>
                         )
                       })}
+                      <div style={{ ...styles.nowLine, left: `${((nowMin - gridStart) / (HOURS_RANGE * 60)) * 100}%` }}>
+                        <div style={styles.nowArrow} />
+                      </div>
                     </div>
                   </div>
                 )
@@ -264,10 +270,12 @@ const styles: Record<string, React.CSSProperties> = {
   gridHeader: { display: 'flex', borderBottom: '1px solid #333', height: 40 },
   gridCorner: { width: 180, flexShrink: 0, padding: '0 12px', display: 'flex', alignItems: 'center', fontSize: 12, color: '#666', fontWeight: 600 },
   timeSlot: { width: 140, flexShrink: 0, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#888', borderLeft: '1px solid #222' },
-  nowLine: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: '#e50914' },
+  nowTick: { position: 'absolute', bottom: -1, left: 0, right: 0, height: 3, background: '#e50914', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  nowLine: { position: 'absolute', top: 0, bottom: 0, width: 2, background: '#e50914', zIndex: 10, pointerEvents: 'none' as const },
+  nowArrow: { position: 'absolute', top: -6, left: -5, width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid #e50914' },
   gridRow: { display: 'flex', height: 64, borderBottom: '1px solid #141414' },
   channelLabel: { width: 180, flexShrink: 0, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, background: '#141414' },
-  programRow: { flex: 1, position: 'relative', overflow: 'hidden' },
+  programRow: { flex: 1, position: 'relative', overflow: 'visible' as const },
   programBlock: {
     position: 'absolute', top: 4, bottom: 4, borderRadius: 4, padding: '2px 6px',
     display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 1,

@@ -14,6 +14,7 @@ export default function Zapper() {
   const [channels, setChannels] = useState<Series[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [currentEpisode, setCurrentEpisode] = useState<Episode | null>(null)
+  const [initialPos, setInitialPos] = useState<number | undefined>()
   const [episodeQueues, setEpisodeQueues] = useState<Record<string, Episode[]>>({})
   const [episodeIndexMap, setEpisodeIndexMap] = useState<Record<string, number>>({})
   const [playing, setPlaying] = useState(true)
@@ -76,6 +77,7 @@ export default function Zapper() {
 
       setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: epIdx }))
       setCurrentEpisode(series.episodes[epIdx])
+      setInitialPos(progress && !progress.completed ? progress.position : undefined)
     } catch {}
   }, [profile])
 
@@ -226,7 +228,7 @@ export default function Zapper() {
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
         autoPlay={playing}
-        initialPosition={undefined}
+        initialPosition={initialPos}
       />
 
       <ZapperOverlay
