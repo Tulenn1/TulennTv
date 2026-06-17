@@ -32,14 +32,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-artifact@v4
+
+  test:
+    name: Test
+    needs: [build-web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          name: web-dist
-          path: dist/
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
 
   build-linux:
     name: Build Linux (.AppImage)
-    needs: [lint, build-web]
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [lint, build-web, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +69,8 @@ jobs:
 
   build-win:
     name: Build Windows (.exe)
-    needs: [lint, build-web]
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [lint, build-web, test]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
