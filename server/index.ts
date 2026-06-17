@@ -11,6 +11,8 @@ import channelsRouter from './routes/channels'
 import foldersRouter from './routes/folders'
 import scannerRouter from './routes/scanner'
 import episodeRouter from './routes/episode'
+import videoRouter from './routes/video'
+import { streamVideo } from './streamer'
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3456', 10)
@@ -26,9 +28,15 @@ app.use('/api/channels', channelsRouter)
 app.use('/api/folders', foldersRouter)
 app.use('/api/scanner', scannerRouter)
 app.use('/api/episode', episodeRouter)
+app.use('/api/video', videoRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() })
+})
+
+app.get(/^\/api\/serve-file\/(.+)$/, (req, res) => {
+  const filePath = '/' + decodeURIComponent(req.params[0])
+  streamVideo(filePath, req, res)
 })
 
 app.use(express.static(path.join(process.cwd(), 'dist')))
