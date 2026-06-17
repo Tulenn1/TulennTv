@@ -13,7 +13,7 @@ export default function SeriesCard({ series, onClick, onDelete, favorite }: Prop
       <button onClick={onClick} style={styles.card}>
         <div style={styles.thumbnail}>
           {series.poster ? (
-            <img src={series.poster} alt={series.title} style={styles.poster} />
+            <img src={`/api/poster/${series.id}`} alt={series.title} style={styles.poster} />
           ) : (
             <div style={styles.placeholder}>
               {series.title.charAt(0).toUpperCase()}

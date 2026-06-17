@@ -2,48 +2,36 @@ import fs from 'fs'
 import path from 'path'
 import { v4 as uuid } from 'uuid'
 import { getDb } from './database'
+import { parseEpisodeInfo, detectType } from './parser'
 
 const VIDEO_EXTENSIONS = new Set([
   '.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v', '.wmv', '.flv'
 ])
+
+const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp'])
+const POSTER_NAMES = new Set(['poster', 'folder', 'cover', 'portada', 'caratula', 'thumb', 'thumbnail'])
 
 function isVideoFile(file: string): boolean {
   const ext = path.extname(file).toLowerCase()
   return VIDEO_EXTENSIONS.has(ext)
 }
 
-export function parseEpisodeInfo(filename: string): { season: number; episode: number; title: string } {
-  const name = path.parse(filename).name
-  const patterns = [
-    /S(\d+)[Ee](\d+)/,
-    /s(\d+)e(\d+)/,
-    /(\d+)x(\d+)/,
-    /[Ee]p[\.\s]?(\d+)/i,
-    /Episodio[\.\s]?(\d+)/i,
-    /Cap[ií]tulo[\.\s]?(\d+)/i,
-    /- (\d+)/,
-    /\[(\d+)\]/,
-  ]
+function isImageFile(file: string): boolean {
+  return IMAGE_EXTENSIONS.has(path.extname(file).toLowerCase())
+}
 
-  for (const pattern of patterns) {
-    const match = name.match(pattern)
-    if (match) {
-      const groups = match.slice(1)
-      if (groups.length === 2) {
-        return {
-          season: parseInt(groups[0], 10),
-          episode: parseInt(groups[1], 10),
-          title: name
-        }
-      }
-      return {
-        season: 1,
-        episode: parseInt(groups[0], 10),
-        title: name
-      }
-    }
+function findPoster(dirPath: string, seriesTitle: string): string {
+  try {
+    const items = fs.readdirSync(dirPath)
+    const match = items.find(f => {
+      if (!isImageFile(f)) return false
+      const name = path.parse(f).name.toLowerCase()
+      return POSTER_NAMES.has(name) || name === seriesTitle.toLowerCase()
+    })
+    return match ? path.join(dirPath, match) : ''
+  } catch {
+    return ''
   }
-  return { season: 1, episode: 1, title: name }
 }
 
 export function scanDirectory(dirPath: string, forceType?: string): { series: any[]; episodes: any[] } {
@@ -81,6 +69,7 @@ export function scanDirectory(dirPath: string, forceType?: string): { series: an
   const dirName = path.basename(dirPath)
   const seriesId = uuid()
   const episodes: any[] = []
+  const poster = findPoster(dirPath, dirName)
 
   const parsed = videoFiles.map((file) => {
     const filePath = path.join(dirPath, file)
@@ -106,6 +95,7 @@ export function scanDirectory(dirPath: string, forceType?: string): { series: an
       id: uuid(),
       seriesId,
       title: p.title,
+      cleanTitle: p.cleanTitle,
       path: p.filePath,
       season: p.season,
       episode: p.episode,
@@ -113,19 +103,12 @@ export function scanDirectory(dirPath: string, forceType?: string): { series: an
     })
   }
 
-  function detectType(): 'anime' | 'series' | 'movie' {
-    if (forceType) return forceType as 'anime' | 'series' | 'movie'
-    const lower = dirName.toLowerCase()
-    if (lower.includes('anime') || /[\u3040-\u30ff\u4e00-\u9fff]/.test(dirName)) return 'anime'
-    return 'series'
-  }
-
   const series = {
     id: seriesId,
     title: dirName,
-    type: detectType(),
+    type: detectType(dirName, forceType),
     path: dirPath,
-    poster: '',
+    poster,
     addedAt: new Date().toISOString(),
   }
 
