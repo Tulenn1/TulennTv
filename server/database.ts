@@ -5,7 +5,7 @@ import { createSchema } from './schema'
 
 let db: Database.Database | null = null
 
-const isPkg = typeof process.pkg !== 'undefined'
+const isPkg = typeof (process as any).pkg !== undefined
 const BASE_DIR = isPkg ? path.dirname(process.execPath) : process.cwd()
 
 const DB_DIR = process.env.NODE_ENV === 'test'

@@ -25,7 +25,7 @@ import { openFirewallPort, closeFirewallPort } from './firewall'
 const app = express()
 const PORT = parseInt(process.env.PORT || '3456', 10)
 
-const isPkg = typeof process.pkg !== 'undefined'
+const isPkg = typeof (process as any).pkg !== undefined
 const BASE_DIR = isPkg ? path.dirname(process.execPath) : process.cwd()
 
 app.use(cors())
