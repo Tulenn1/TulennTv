@@ -49,7 +49,7 @@ export default function TvConnect() {
             No se pudo conectar al servidor.
           </p>
           <p style={{ color: '#666', fontSize: 13, marginTop: 8, lineHeight: 1.5 }}>
-            Verificá que el servidor esté corriendo y que ambos dispositivos estén en la misma red WiFi.
+            Verifica que el servidor esté corriendo y que ambos dispositivos estén en la misma red WiFi.
           </p>
           <button style={styles.retryBtn} onClick={load}>Reintentar</button>
         </div>
@@ -79,7 +79,7 @@ export default function TvConnect() {
         </div>
 
         <p style={styles.hint}>
-          Escaneá el código QR o escribí la URL en el navegador de tu Smart TV / celular.
+          Escanea el código QR o escribe la URL en el navegador de tu Smart TV / celular.
           Todos los dispositivos deben estar en la misma red WiFi.
         </p>
 

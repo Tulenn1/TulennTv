@@ -154,7 +154,7 @@ export default function Library() {
           <span style={{ color: '#555', fontSize: 13, alignSelf: 'center' }}>o</span>
           <input
             style={{ ...styles.searchInput, flex: 1 }}
-            placeholder="Escribí la ruta manualmente (ej: /media/Anime)"
+            placeholder="Escribe la ruta manualmente (ej: /media/Anime)"
             value={scanPath}
             onChange={e => setScanPath(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleScan()}

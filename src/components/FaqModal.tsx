@@ -29,8 +29,8 @@ export default function FaqModal({ open, onClose }: Props) {
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>📂 ¿Cómo agrego mis series?</h3>
             <p style={styles.text}>
-              Andá a <strong>Carpetas</strong> y configurá tu <strong>carpeta principal</strong>
-              donde tenés todos tus videos. Después presioná <strong>"Escanear carpeta principal"</strong>.
+              Ve a <strong>Carpetas</strong> y configura tu <strong>carpeta principal</strong>
+              donde tienes todos tus videos. Después presiona <strong>"Escanear carpeta principal"</strong>.
             </p>
             <pre style={styles.code}>
 {`📁 CarpetaPrincipal/
@@ -70,7 +70,7 @@ Serie - 01-02.mkv           → Episodio doble`}
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>🖼️ Carátulas / Posters</h3>
             <p style={styles.text}>
-              Poné un archivo <strong>poster.jpg</strong>, <strong>cover.png</strong> o
+              Coloca un archivo <strong>poster.jpg</strong>, <strong>cover.png</strong> o
               <strong>folder.jpg</strong> dentro de la carpeta de la serie.
               La app lo detecta y lo muestra como carátula en la Biblioteca.
             </p>
@@ -79,7 +79,7 @@ Serie - 01-02.mkv           → Episodio doble`}
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>📺 Zapping</h3>
             <p style={styles.text}>
-              Cada serie es un "canal". Usá las flechas <strong>← →</strong> para cambiar entre canales.
+              Cada serie es un "canal". Usa las flechas <strong>← →</strong> para cambiar entre canales.
               Al terminar un episodio, automáticamente pasa al <strong>siguiente canal</strong>
               con el siguiente episodio (rotación tipo TV).
             </p>
@@ -121,7 +121,7 @@ Serie - 01-02.mkv           → Episodio doble`}
           <section style={styles.section}>
             <h3 style={styles.sectionTitle}>📱 Smart TV / Otros dispositivos</h3>
             <p style={styles.text}>
-              Una vez que el servidor está corriendo, abrí la IP que aparece en la consola
+              Una vez que el servidor está corriendo, abre la IP que aparece en la consola
               desde el navegador de cualquier dispositivo en la misma red:
             </p>
             <pre style={styles.code}>
