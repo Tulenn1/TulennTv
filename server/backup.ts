@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { getDb, closeDb } from './database'
 
-const isPkg = typeof (process as any).pkg !== undefined
+const isPkg = typeof process.pkg !== 'undefined'
 const BASE_DIR = isPkg ? path.dirname(process.execPath) : process.cwd()
 
 const DB_PATH = path.join(BASE_DIR, 'data', 'tulenntv.db')
