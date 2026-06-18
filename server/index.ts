@@ -20,6 +20,7 @@ import { ensureAutoChannels } from './channels'
 import { backupDatabase, cleanupOldBackups } from './backup'
 import { getLocalIp } from './utils/network'
 import { startMdns, stopMdns } from './mdns'
+import { openFirewallPort, closeFirewallPort } from './firewall'
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3456', 10)
@@ -49,7 +50,7 @@ app.get('/api/health', (_req, res) => {
 })
 
 app.get(/^\/api\/serve-file\/(.+)$/, (req, res) => {
-  const filePath = '/' + decodeURIComponent(req.params[0])
+  const filePath = '/' + decodeURIComponent(req.params[0] as string)
   streamVideo(filePath, req, res)
 })
 
@@ -67,24 +68,25 @@ ensureAutoChannels()
 cleanupOldBackups()
 backupDatabase()
 setInterval(() => backupDatabase(), 24 * 60 * 60 * 1000)
+
 app.listen(PORT, '0.0.0.0', () => {
   const ip = getLocalIp()
-  console.log(`\n  🎬 TulennTv Server`)
-  console.log(`  ─────────────────`)
+  console.log(`\n  \x1b[1;31mTulennTv Server\x1b[0m`)
+  console.log(`  \x1b[90m─────────────────\x1b[0m`)
   console.log(`  Local:   http://localhost:${PORT}`)
   console.log(`  Red:     http://${ip}:${PORT}`)
   startMdns(PORT)
+  openFirewallPort(PORT)
   console.log(`  Puerto:  ${PORT}\n`)
 })
 
-process.on('SIGINT', () => {
+function shutdown(): void {
+  console.log('\n  Cerrando servidor...')
   stopMdns()
+  closeFirewallPort()
   closeDb()
   process.exit(0)
-})
+}
 
-process.on('SIGTERM', () => {
-  stopMdns()
-  closeDb()
-  process.exit(0)
-})
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)
