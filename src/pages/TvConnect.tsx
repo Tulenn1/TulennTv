@@ -1,31 +1,57 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export default function TvConnect() {
   const navigate = useNavigate()
   const [info, setInfo] = useState<{ local: string; network: string; mdns: string; port: number } | null>(null)
   const [qrSvg, setQrSvg] = useState('')
+  const [error, setError] = useState(false)
 
-  useEffect(() => {
-    fetch('/api/connect')
-      .then(r => r.json())
-      .then(setInfo)
-      .catch(() => {})
+  const load = useCallback(async () => {
+    setError(false)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000)
 
-    fetch('/api/connect/qr')
-      .then(r => r.text())
-      .then(setQrSvg)
-      .catch(() => {})
+    try {
+      const [infoRes, qrRes] = await Promise.all([
+        fetch('/api/connect', { signal: controller.signal }).then(r => r.json()),
+        fetch('/api/connect/qr', { signal: controller.signal }).then(r => r.text()),
+      ])
+      setInfo(infoRes)
+      setQrSvg(qrRes)
+    } catch {
+      setError(true)
+    } finally {
+      clearTimeout(timeout)
+    }
   }, [])
 
-  if (!info) {
+  useEffect(() => { load() }, [load])
+
+  if (!info && !error) {
     return (
       <div style={styles.container}>
         <div style={styles.card}>
           <h1 style={styles.logo}>TulennTv</h1>
-          <p style={{ color: '#a0a0a0', marginTop: 16 }}>
-            Conectando al servidor...
+          <p style={{ color: '#a0a0a0', marginTop: 16 }}>Conectando al servidor...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <button style={styles.backBtn} onClick={() => navigate(-1)}>← Volver</button>
+          <h1 style={styles.logo}>TulennTv</h1>
+          <p style={{ color: '#a0a0a0', marginTop: 24, lineHeight: 1.6 }}>
+            No se pudo conectar al servidor.
           </p>
+          <p style={{ color: '#666', fontSize: 13, marginTop: 8, lineHeight: 1.5 }}>
+            Verificá que el servidor esté corriendo y que ambos dispositivos estén en la misma red WiFi.
+          </p>
+          <button style={styles.retryBtn} onClick={load}>Reintentar</button>
         </div>
       </div>
     )
@@ -44,12 +70,12 @@ export default function TvConnect() {
 
         <div style={styles.infoBox}>
           <p style={styles.label}>Red local (recomendado)</p>
-          <p style={styles.url}>{info.network}</p>
+          <p style={styles.url}>{info!.network}</p>
         </div>
 
         <div style={styles.infoBox}>
           <p style={styles.label}>mDNS (Apple / Linux)</p>
-          <p style={styles.urlMuted}>{info.mdns}</p>
+          <p style={styles.urlMuted}>{info!.mdns}</p>
         </div>
 
         <p style={styles.hint}>
@@ -59,9 +85,9 @@ export default function TvConnect() {
 
         <div style={styles.ipRow}>
           <span style={styles.ipLabel}>IP local:</span>
-          <span style={styles.ipValue}>{info.network.replace('http://', '').replace(`:${info.port}`, '')}</span>
+          <span style={styles.ipValue}>{info!.network.replace('http://', '').replace(`:${info!.port}`, '')}</span>
           <span style={styles.ipLabel}>Puerto:</span>
-          <span style={styles.ipValue}>{info.port}</span>
+          <span style={styles.ipValue}>{info!.port}</span>
         </div>
       </div>
     </div>
@@ -80,6 +106,7 @@ const styles: Record<string, React.CSSProperties> = {
   urlMuted: { fontSize: 16, fontWeight: 600, color: '#888', fontFamily: 'monospace' },
   hint: { fontSize: 13, color: '#666', marginTop: 16, lineHeight: 1.5 },
   backBtn: { background: 'transparent', border: 'none', color: '#a0a0a0', fontSize: 14, cursor: 'pointer', padding: 0, display: 'block', marginBottom: 12 },
+  retryBtn: { marginTop: 16, padding: '10px 24px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer' },
   ipRow: { display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16, fontSize: 13, color: '#555' },
   ipLabel: { color: '#666' },
   ipValue: { color: '#aaa', fontFamily: 'monospace' },
