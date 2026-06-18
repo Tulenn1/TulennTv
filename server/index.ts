@@ -18,6 +18,7 @@ import { streamVideo } from './streamer'
 import { ensureAutoChannels } from './channels'
 import { backupDatabase, cleanupOldBackups } from './backup'
 import { getLocalIp } from './utils/network'
+import { startMdns, stopMdns } from './mdns'
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3456', 10)
@@ -70,15 +71,18 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`  ─────────────────`)
   console.log(`  Local:   http://localhost:${PORT}`)
   console.log(`  Red:     http://${ip}:${PORT}`)
+  startMdns(PORT)
   console.log(`  Puerto:  ${PORT}\n`)
 })
 
 process.on('SIGINT', () => {
+  stopMdns()
   closeDb()
   process.exit(0)
 })
 
 process.on('SIGTERM', () => {
+  stopMdns()
   closeDb()
   process.exit(0)
 })
