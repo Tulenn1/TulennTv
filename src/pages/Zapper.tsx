@@ -311,7 +311,7 @@ export default function Zapper() {
       )}
 
       {showGuide && (
-        <div style={styles.guideOverlay}>
+        <div className="guideOverlay" style={styles.guideOverlay}>
           <div style={styles.guideHeader}>Guía de Canales</div>
           <div style={styles.guideList}>
             {channels.map((ch, idx) => {

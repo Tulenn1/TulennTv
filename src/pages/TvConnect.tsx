@@ -31,7 +31,7 @@ export default function TvConnect() {
   if (!info && !error) {
     return (
       <div style={styles.container}>
-        <div style={styles.card}>
+        <div style={styles.card} className="card">
           <h1 style={styles.logo}>TulennTv</h1>
           <p style={{ color: '#a0a0a0', marginTop: 16 }}>Conectando al servidor...</p>
         </div>
@@ -42,7 +42,7 @@ export default function TvConnect() {
   if (error) {
     return (
       <div style={styles.container}>
-        <div style={styles.card}>
+        <div style={styles.card} className="card">
           <button style={styles.backBtn} onClick={() => navigate(-1)}>← Volver</button>
           <h1 style={styles.logo}>TulennTv</h1>
           <p style={{ color: '#a0a0a0', marginTop: 24, lineHeight: 1.6 }}>
@@ -59,7 +59,7 @@ export default function TvConnect() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
+      <div style={styles.card} className="card">
         <button style={styles.backBtn} onClick={() => navigate(-1)}>← Volver</button>
         <h1 style={styles.logo}>TulennTv</h1>
         <h2 style={styles.subtitle}>Conectar dispositivo</h2>

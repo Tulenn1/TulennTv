@@ -78,7 +78,7 @@ export default function ChannelsPage() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.sidebar}>
+      <div style={styles.sidebar} className="sidebar">
         <div style={styles.logo}>TulennTv</div>
         <div style={styles.nav}>
           <button style={styles.navBtn} onClick={() => navigate('/library')}>Biblioteca</button>
@@ -90,8 +90,8 @@ export default function ChannelsPage() {
         <div style={{ marginTop: 'auto', fontSize: 12, color: '#555' }}>{profile?.name} {profile?.avatar}</div>
       </div>
 
-      <div style={styles.main}>
-        <div style={styles.header}>
+      <div style={styles.main} className="main">
+        <div className="header" style={styles.header}>
           <h1 style={styles.title}>Canales</h1>
           <button style={styles.addBtn} onClick={() => { setEditId(null); setFormName(''); setFormIcon('📺'); setFormSeries([]); setShowCreate(true) }}>+ Nuevo canal</button>
         </div>

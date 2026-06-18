@@ -66,3 +66,27 @@ input {
   font-family: var(--font);
   outline: none;
 }
+
+@media (max-width: 768px) {
+  .sidebar { display: none !important; }
+  .main { padding: 12px 12px 70px !important; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; gap: 10px !important; }
+  h1 { font-size: 22px !important; }
+  .scanBar { flex-direction: column !important; gap: 8px !important; }
+  .scanBar input { width: 100% !important; }
+  .controls { width: 100% !important; }
+  .controls input { width: 100% !important; }
+  .filters { width: 100% !important; justify-content: center !important; }
+  .header { flex-direction: column !important; align-items: flex-start !important; }
+  .card { max-width: 100% !important; }
+  .guideOverlay { left: 5% !important; right: 5% !important; top: 5% !important; bottom: 15% !important; }
+  [class*="container"] > div:first-child.mobile-nav-show { display: flex !important; }
+}
+
+@media (max-width: 480px) {
+  .grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav-show { display: none !important; }
+}

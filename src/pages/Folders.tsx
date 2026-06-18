@@ -188,7 +188,7 @@ export default function Folders() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.sidebar}>
+      <div style={styles.sidebar} className="sidebar">
         <div style={styles.logo}>TulennTv</div>
         <div style={styles.nav}>
           <button style={styles.navBtn} onClick={() => navigate('/library')}>Biblioteca</button>
@@ -203,8 +203,8 @@ export default function Folders() {
         </div>
       </div>
 
-      <div style={styles.main}>
-        <div style={styles.header}>
+      <div style={styles.main} className="main">
+        <div className="header" style={styles.header}>
           <h1 style={styles.title}>Carpetas</h1>
         </div>
 

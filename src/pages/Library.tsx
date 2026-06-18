@@ -109,7 +109,7 @@ export default function Library() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.sidebar}>
+      <div style={styles.sidebar} className="sidebar">
         <div style={styles.logo}>TulennTv</div>
         <div style={styles.nav}>
           <button style={styles.navBtnActive}>Biblioteca</button>
@@ -123,10 +123,10 @@ export default function Library() {
           {profile?.name} {profile?.avatar}
         </div>
       </div>
-      <div style={styles.main}>
-        <div style={styles.header}>
+      <div style={styles.main} className="main">
+        <div className="header" style={styles.header}>
           <h1 style={styles.title}>Biblioteca</h1>
-          <div style={styles.controls}>
+          <div className="controls" style={styles.controls}>
             <input
               style={styles.searchInput}
               placeholder="Buscar series..."
@@ -147,7 +147,7 @@ export default function Library() {
           </div>
         </div>
 
-        <div style={styles.scanBar}>
+        <div className="scanBar" style={styles.scanBar}>
           <button style={styles.folderBtn} onClick={handlePickFolder}>
             📁 Elegir carpeta
           </button>
@@ -182,7 +182,7 @@ export default function Library() {
             <p style={{ fontSize: 14, color: '#666', marginTop: 8 }}>Escanea una carpeta para empezar</p>
           </div>
         ) : filter !== 'all' ? (
-          <div style={styles.grid}>
+          <div style={styles.grid} className="grid">
             {series.map(s => (
               <SeriesCard key={s.id} series={s} onClick={() => handleSelect(s)} onDelete={() => handleDeleteSeries(s)} />
             ))}
@@ -199,7 +199,7 @@ export default function Library() {
                     <span style={styles.sectionTitle}>{TYPE_LABELS[cat]}</span>
                     <span style={styles.sectionCount}>{items.length} serie{items.length !== 1 ? 's' : ''}</span>
                   </div>
-                  <div style={styles.grid}>
+                  <div style={styles.grid} className="grid">
                     {items.map(s => (
                       <SeriesCard
                         key={s.id}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from './context/AppContext'
 import ProfileSelector from './pages/ProfileSelector'
 import Library from './pages/Library'
@@ -15,6 +15,52 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (loading) return null
   if (!profile) return <Navigate to="/profiles" replace />
   return <>{children}</>
+}
+
+function MobileNav() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { profile } = useApp()
+  if (!profile || location.pathname === '/zapper') return null
+
+  const tabs = [
+    { path: '/library', icon: '📚', label: 'Biblioteca' },
+    { path: '/zapper', icon: '📺', label: 'Zapping' },
+    { path: '/guide', icon: '📋', label: 'Guía' },
+    { path: '/tv-connect', icon: '📡', label: 'Conectar' },
+  ]
+
+  return (
+    <div className="mobile-nav-show" style={mobileNav.container}>
+      {tabs.map(t => (
+        <button
+          key={t.path}
+          style={{
+            ...mobileNav.tab,
+            color: location.pathname === t.path ? '#e50914' : '#666',
+          }}
+          onClick={() => navigate(t.path)}
+        >
+          <span style={{ fontSize: 20 }}>{t.icon}</span>
+          <span style={mobileNav.label}>{t.label}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+const mobileNav: Record<string, React.CSSProperties> = {
+  container: {
+    display: 'none',
+    position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
+    background: '#141414', borderTop: '1px solid #333',
+    padding: '6px 0', justifyContent: 'space-around',
+  },
+  tab: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+    background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
+  },
+  label: { fontSize: 10, fontWeight: 600 },
 }
 
 export default function App() {
@@ -33,6 +79,7 @@ export default function App() {
 
   return (
     <>
+      <MobileNav />
       <Routes>
         <Route path="/profiles" element={profile ? <Navigate to="/library" replace /> : <ProfileSelector />} />
         <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
@@ -55,7 +102,7 @@ export default function App() {
 
 const styles: Record<string, React.CSSProperties> = {
   faqBtn: {
-    position: 'fixed', bottom: 20, right: 20, zIndex: 999,
+    position: 'fixed', bottom: 80, right: 20, zIndex: 999,
     width: 40, height: 40, borderRadius: '50%',
     background: '#e50914', color: '#fff', fontSize: 18, fontWeight: 700,
     border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(229,9,20,0.4)',
