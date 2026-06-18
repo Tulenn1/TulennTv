@@ -147,12 +147,30 @@ TulennTv/
 
 ## Scripts disponibles
 
-| Comando | Descripción |
-|---------|-------------|
+| Comando / Script | Descripción |
+|-----------------|-------------|
 | `npm run dev` | Desarrollo (Vite + servidor hot-reload) |
 | `npm run build` | Compila frontend React |
 | `npm start` | Inicia servidor en producción |
 | `npm test` | Ejecuta tests (Jest) |
+| `scripts\update.bat` | Actualiza la app (git pull + npm install + build) |
+| `scripts\start-server.bat` | Inicio rápido con doble clic |
+| `scripts\build-dist.bat` | Genera carpeta portable para distribuir |
+| `scripts\install-service.ps1` | Instala como servicio de Windows (auto-inicio) |
+| `scripts\firewall.ps1` | Abre puerto 3456 en firewall |
+
+## Actualizar la app
+
+Cuando haya nuevas versiones en GitHub, ejecutá:
+
+```batch
+scripts\update.bat
+```
+
+Esto descarga los cambios, instala dependencias nuevas y recompila el frontend automáticamente.
+Si el servidor estaba corriendo, reinicialo después con `npm start` o `start-server.bat`.
+
+## Arquitectura
 
 ## Pipeline de desarrollo (opencode)
 
