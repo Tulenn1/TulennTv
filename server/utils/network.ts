@@ -31,6 +31,9 @@ function getWindowsWifiIp(): string {
 }
 
 export function getLocalIp(): string {
+  const envIp = process.env.TULENNTV_HOST_IP
+  if (envIp) return envIp
+
   const interfaces = os.networkInterfaces()
 
   for (const name of Object.keys(interfaces)) {
