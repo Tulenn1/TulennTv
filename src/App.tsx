@@ -31,7 +31,7 @@ function MobileNav() {
   ]
 
   return (
-    <div className="mobile-nav-show" style={mobileNav.container}>
+    <div className="mobile-nav" style={mobileNav.container}>
       {tabs.map(t => (
         <button
           key={t.path}
@@ -51,10 +51,9 @@ function MobileNav() {
 
 const mobileNav: Record<string, React.CSSProperties> = {
   container: {
-    display: 'none',
     position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
     background: '#141414', borderTop: '1px solid #333',
-    padding: '6px 0', justifyContent: 'space-around',
+    padding: '6px 0', display: 'flex', justifyContent: 'space-around',
   },
   tab: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,

@@ -88,5 +88,5 @@ input {
 }
 
 @media (min-width: 769px) {
-  .mobile-nav-show { display: none !important; }
+  .mobile-nav { display: none !important; }
 }
