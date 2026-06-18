@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export default function TvConnect() {
+  const navigate = useNavigate()
   const [info, setInfo] = useState<{ local: string; network: string; mdns: string; port: number } | null>(null)
   const [qrSvg, setQrSvg] = useState('')
 
@@ -32,6 +34,7 @@ export default function TvConnect() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
+        <button style={styles.backBtn} onClick={() => navigate(-1)}>← Volver</button>
         <h1 style={styles.logo}>TulennTv</h1>
         <h2 style={styles.subtitle}>Conectar dispositivo</h2>
 
@@ -76,6 +79,7 @@ const styles: Record<string, React.CSSProperties> = {
   url: { fontSize: 20, fontWeight: 700, color: '#e50914', fontFamily: 'monospace' },
   urlMuted: { fontSize: 16, fontWeight: 600, color: '#888', fontFamily: 'monospace' },
   hint: { fontSize: 13, color: '#666', marginTop: 16, lineHeight: 1.5 },
+  backBtn: { background: 'transparent', border: 'none', color: '#a0a0a0', fontSize: 14, cursor: 'pointer', padding: 0, display: 'block', marginBottom: 12 },
   ipRow: { display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16, fontSize: 13, color: '#555' },
   ipLabel: { color: '#666' },
   ipValue: { color: '#aaa', fontFamily: 'monospace' },
