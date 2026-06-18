@@ -115,6 +115,7 @@ export default function Guide() {
           <button style={styles.navBtnActive}>Guía</button>
           <button style={styles.navBtn} onClick={() => navigate('/channels')}>Canales</button>
           <button style={styles.navBtn} onClick={() => navigate('/folders')}>Carpetas</button>
+          <button style={styles.navBtn} onClick={() => navigate('/tv-connect')}>Conectar</button>
         </div>
         <div style={{ marginTop: 'auto', fontSize: 12, color: '#555' }}>
           {profile?.name} {profile?.avatar}
