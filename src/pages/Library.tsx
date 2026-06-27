@@ -50,6 +50,15 @@ export default function Library() {
 
   const categoryOrder = ['anime', 'series', 'movie']
 
+  const waitForScan = async () => {
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 1000))
+      const status = await api.getScanStatus()
+      if (status.status === 'done' || status.status === 'error') return status
+    }
+    return { status: 'timeout' as const, progress: { current: 0, total: 0 } }
+  }
+
   const handleScan = async (path?: string) => {
     const dir = path || scanPath.trim()
     if (!dir) return
@@ -57,7 +66,13 @@ export default function Library() {
     setError('')
     try {
       const type = scanType === 'auto' ? undefined : scanType
-      await api.scanDirectory(dir, type)
+      const result = await api.scanDirectory(dir, type)
+      if (result.status === 'scanning') {
+        const final = await waitForScan()
+        if (final.status === 'error') {
+          throw new Error((final as any).error || 'Error desconocido')
+        }
+      }
       setScanPath('')
       const count = await loadLibrary()
       if (count === 0) setError('No se encontraron archivos de video en esa ruta. Formatos soportados: .mp4, .mkv, .avi, .mov, .webm')

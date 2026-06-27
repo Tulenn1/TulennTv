@@ -71,4 +71,8 @@ export function createSchema(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_favorites_profile ON favorites(profile_id);
     CREATE INDEX IF NOT EXISTS idx_channel_series_channel ON channel_series(channel_id);
   `)
+
+  try {
+    db.exec(`ALTER TABLE episodes ADD COLUMN subtitles TEXT NOT NULL DEFAULT ''`)
+  } catch {}
 }

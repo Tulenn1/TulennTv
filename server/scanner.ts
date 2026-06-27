@@ -3,6 +3,7 @@ import path from 'path'
 import { v4 as uuid } from 'uuid'
 import { getDb } from './database'
 import { parseEpisodeInfo, detectType } from './parser'
+import { getVideoDuration } from './detector'
 
 const VIDEO_EXTENSIONS = new Set([
   '.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v', '.wmv', '.flv'
@@ -10,6 +11,8 @@ const VIDEO_EXTENSIONS = new Set([
 
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp'])
 const POSTER_NAMES = new Set(['poster', 'folder', 'cover', 'portada', 'caratula', 'thumb', 'thumbnail'])
+
+const SUBTITLE_EXTENSIONS = new Set(['.srt', '.vtt', '.ass', '.ssa', '.sub'])
 
 function isVideoFile(file: string): boolean {
   const ext = path.extname(file).toLowerCase()
@@ -34,7 +37,19 @@ function findPoster(dirPath: string, seriesTitle: string): string {
   }
 }
 
-export function scanDirectory(dirPath: string, forceType?: string): { series: any[]; episodes: any[] } {
+function findSubtitles(videoPath: string, dirFiles: string[]): string {
+  const base = path.parse(videoPath).name.toLowerCase()
+  const matches = dirFiles.filter(f => {
+    const ext = path.extname(f).toLowerCase()
+    if (!SUBTITLE_EXTENSIONS.has(ext)) return false
+    return path.parse(f).name.toLowerCase() === base
+  })
+  return matches.length > 0
+    ? JSON.stringify(matches.map(f => path.join(path.dirname(videoPath), f)))
+    : ''
+}
+
+export async function scanDirectory(dirPath: string, forceType?: string): Promise<{ series: any[]; episodes: any[] }> {
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Directory not found: ${dirPath}`)
   }
@@ -58,7 +73,7 @@ export function scanDirectory(dirPath: string, forceType?: string): { series: an
 
     for (const subdir of subdirs) {
       const subPath = path.join(dirPath, subdir)
-      const result = scanDirectory(subPath, forceType)
+      const result = await scanDirectory(subPath, forceType)
       allSeries.push(...result.series)
       allEpisodes.push(...result.episodes)
     }
@@ -71,13 +86,13 @@ export function scanDirectory(dirPath: string, forceType?: string): { series: an
   const episodes: any[] = []
   const poster = findPoster(dirPath, dirName)
 
-  const parsed = videoFiles.map((file) => {
+  const parsed = await Promise.all(videoFiles.map(async (file) => {
     const filePath = path.join(dirPath, file)
     const info = parseEpisodeInfo(file)
-    let stats: fs.Stats | null = null
-    try { stats = fs.statSync(filePath) } catch {}
-    return { ...info, file, filePath, duration: stats?.size ? Math.round(stats.size / 100000) : 0 }
-  })
+    const duration = await getVideoDuration(filePath)
+    const subtitles = findSubtitles(filePath, items)
+    return { ...info, file, filePath, duration, subtitles }
+  }))
 
   const allSameEpisode = parsed.every(p => p.episode === parsed[0].episode)
   const allSameSeason = parsed.every(p => p.season === parsed[0].season)
@@ -100,6 +115,7 @@ export function scanDirectory(dirPath: string, forceType?: string): { series: an
       season: p.season,
       episode: p.episode,
       duration: p.duration,
+      subtitles: p.subtitles,
     })
   }
 
@@ -115,19 +131,19 @@ export function scanDirectory(dirPath: string, forceType?: string): { series: an
   return { series: [series], episodes }
 }
 
-export function scanAndImport(dirPath: string, type?: string): any[] {
-  const result = scanDirectory(dirPath, type)
+export async function scanAndImport(dirPath: string, type?: string): Promise<any[]> {
+  const result = await scanDirectory(dirPath, type)
   const db = getDb()
 
   const insertSeries = db.prepare('INSERT OR IGNORE INTO series (id, title, type, path, poster, added_at) VALUES (?, ?, ?, ?, ?, ?)')
-  const insertEpisode = db.prepare('INSERT OR IGNORE INTO episodes (id, series_id, title, path, season, episode, duration) VALUES (?, ?, ?, ?, ?, ?, ?)')
+  const insertEpisode = db.prepare('INSERT OR IGNORE INTO episodes (id, series_id, title, path, season, episode, duration, subtitles) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
 
   const transaction = db.transaction(() => {
     for (const s of result.series) {
       insertSeries.run(s.id, s.title, s.type, s.path, s.poster, s.addedAt)
     }
     for (const e of result.episodes) {
-      insertEpisode.run(e.id, e.seriesId, e.title, e.path, e.season, e.episode, e.duration)
+      insertEpisode.run(e.id, e.seriesId, e.title, e.path, e.season, e.episode, e.duration, e.subtitles)
     }
   })
   transaction()
@@ -136,7 +152,7 @@ export function scanAndImport(dirPath: string, type?: string): any[] {
   return ids.map((id: string) => {
     const s = db.prepare('SELECT id, title, type, path, poster, added_at as addedAt FROM series WHERE id = ?').get(id) as any
     if (!s) return null
-    const episodes = db.prepare('SELECT id, series_id as seriesId, title, path, season, episode, duration FROM episodes WHERE series_id = ? ORDER BY season ASC, episode ASC').all(id)
+    const episodes = db.prepare('SELECT id, series_id as seriesId, title, path, season, episode, duration, subtitles FROM episodes WHERE series_id = ? ORDER BY season ASC, episode ASC').all(id)
     return { ...s, episodes, favorite: false }
   }).filter(Boolean)
 }

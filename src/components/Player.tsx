@@ -1,7 +1,15 @@
 import { useRef, useEffect, useCallback } from 'react'
 
+interface SubtitleTrack {
+  url: string
+  label: string
+  lang: string
+}
+
 interface Props {
   src: string
+  subtitles?: SubtitleTrack[]
+  activeSubtitle?: number | null
   onTimeUpdate?: (currentTime: number, duration: number) => void
   onEnded?: () => void
   autoPlay?: boolean
@@ -9,7 +17,7 @@ interface Props {
   onReady?: () => void
 }
 
-export default function Player({ src, onTimeUpdate, onEnded, autoPlay = true, initialPosition, onReady }: Props) {
+export default function Player({ src, subtitles, activeSubtitle, onTimeUpdate, onEnded, autoPlay = true, initialPosition, onReady }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -19,6 +27,38 @@ export default function Player({ src, onTimeUpdate, onEnded, autoPlay = true, in
     video.src = src
     if (autoPlay) video.play().catch(() => {})
   }, [src, autoPlay])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    Array.from(video.children).forEach(child => {
+      if (child.tagName === 'TRACK') child.remove()
+    })
+
+    subtitles?.forEach((sub, i) => {
+      const track = document.createElement('track')
+      track.kind = 'subtitles'
+      track.label = sub.label
+      track.srclang = sub.lang
+      track.src = sub.url
+      if (i === activeSubtitle) track.default = true
+      video.appendChild(track)
+    })
+  }, [subtitles, activeSubtitle])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    Array.from(video.textTracks).forEach(t => {
+      t.mode = 'hidden'
+    })
+
+    if (activeSubtitle !== null && activeSubtitle !== undefined && video.textTracks[activeSubtitle]) {
+      video.textTracks[activeSubtitle].mode = 'showing'
+    }
+  }, [activeSubtitle, subtitles])
 
   useEffect(() => {
     const video = videoRef.current

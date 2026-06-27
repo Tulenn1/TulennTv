@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { api, getVideoUrl } from '../lib/api'
+import { api, getVideoUrl, getSubtitleUrl } from '../lib/api'
 import { Series, Episode } from '../shared/types'
 import Player from '../components/Player'
 import PlayerControls from '../components/PlayerControls'
@@ -28,6 +28,8 @@ export default function Zapper() {
   const [loading, setLoading] = useState(true)
   const controlsTimeout = useRef<ReturnType<typeof setTimeout>>()
   const playerRef = useRef<HTMLVideoElement>(null)
+  const [subtitleTracks, setSubtitleTracks] = useState<{ url: string; label: string; lang: string }[]>([])
+  const [activeSubtitle, setActiveSubtitle] = useState<number | null>(null)
 
   const loadChannels = useCallback(async () => {
     if (!profile) return
@@ -232,6 +234,27 @@ export default function Zapper() {
     }
   }, [playing])
 
+  useEffect(() => {
+    if (!currentEpisode?.subtitles) {
+      setSubtitleTracks([])
+      setActiveSubtitle(null)
+      return
+    }
+    try {
+      const paths: string[] = JSON.parse(currentEpisode.subtitles)
+      const tracks = paths.map((_, i) => ({
+        url: getSubtitleUrl(currentEpisode.id, i),
+        label: `Subs ${i + 1}`,
+        lang: 'es',
+      }))
+      setSubtitleTracks(tracks)
+      setActiveSubtitle(tracks.length > 0 ? 0 : null)
+    } catch {
+      setSubtitleTracks([])
+      setActiveSubtitle(null)
+    }
+  }, [currentEpisode])
+
   if (loading) {
     return <div style={styles.loading}>Cargando canales...</div>
   }
@@ -254,6 +277,8 @@ export default function Zapper() {
     }}>
       <Player
         src={currentEpisode ? getVideoUrl(currentEpisode.path) : ''}
+        subtitles={subtitleTracks}
+        activeSubtitle={activeSubtitle}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
         autoPlay={playing}
@@ -279,6 +304,8 @@ export default function Zapper() {
         currentTime={currentTime}
         duration={duration}
         volume={volume}
+        subtitles={subtitleTracks.map((_, i) => ({ index: i, label: `Subs ${i + 1}` }))}
+        activeSubtitle={activeSubtitle}
         onPlayPause={handleTogglePlay}
         onSeek={handleSeek}
         onVolumeChange={setVolume}
@@ -288,6 +315,7 @@ export default function Zapper() {
             : document.documentElement.requestFullscreen()
         }}
         onMenu={() => navigate('/library')}
+        onSubtitleChange={setActiveSubtitle}
       />
 
       {showInfo && (

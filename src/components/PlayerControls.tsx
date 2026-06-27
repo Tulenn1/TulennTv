@@ -1,16 +1,24 @@
 import { useRef, useState, useEffect } from 'react'
 
+interface SubtitleOption {
+  index: number | null
+  label: string
+}
+
 interface Props {
   visible: boolean
   playing: boolean
   currentTime: number
   duration: number
   volume: number
+  subtitles?: SubtitleOption[]
+  activeSubtitle?: number | null
   onPlayPause: () => void
   onSeek: (time: number) => void
   onVolumeChange: (vol: number) => void
   onFullscreen: () => void
   onMenu?: () => void
+  onSubtitleChange?: (index: number | null) => void
 }
 
 function formatTime(s: number): string {
@@ -21,10 +29,12 @@ function formatTime(s: number): string {
 
 export default function PlayerControls({
   visible, playing, currentTime, duration, volume,
-  onPlayPause, onSeek, onVolumeChange, onFullscreen, onMenu,
+  subtitles, activeSubtitle,
+  onPlayPause, onSeek, onVolumeChange, onFullscreen, onMenu, onSubtitleChange,
 }: Props) {
   const progressRef = useRef<HTMLDivElement>(null)
   const [showVolume, setShowVolume] = useState(false)
+  const [showSubs, setShowSubs] = useState(false)
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
   const handleProgressClick = (e: React.MouseEvent) => {
@@ -72,6 +82,33 @@ export default function PlayerControls({
               </div>
             )}
           </div>
+          {subtitles && subtitles.length > 0 && (
+            <div
+              style={{ position: 'relative' }}
+              onMouseEnter={() => setShowSubs(true)}
+              onMouseLeave={() => setShowSubs(false)}
+            >
+              <button style={{
+                ...styles.btn,
+                color: activeSubtitle !== null ? '#e50914' : '#fff',
+              }} onClick={() => setShowSubs(s => !s)}>CC</button>
+              {showSubs && (
+                <div style={styles.subMenu}>
+                  <button
+                    style={{ ...styles.subItem, fontWeight: activeSubtitle === null ? 700 : 400 }}
+                    onClick={() => { onSubtitleChange?.(null); setShowSubs(false) }}
+                  >Off</button>
+                  {subtitles.map((sub, i) => (
+                    <button
+                      key={i}
+                      style={{ ...styles.subItem, fontWeight: activeSubtitle === i ? 700 : 400 }}
+                      onClick={() => { onSubtitleChange?.(sub.index); setShowSubs(false) }}
+                    >{sub.label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <button style={styles.btn} onClick={onFullscreen}>⛶</button>
         </div>
       </div>
@@ -96,5 +133,14 @@ const styles: Record<string, React.CSSProperties> = {
   volumeSlider: {
     position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
     background: '#1f1f1f', padding: '8px 12px', borderRadius: 6, marginBottom: 8,
+  },
+  subMenu: {
+    position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+    background: '#1f1f1f', borderRadius: 6, padding: 4, marginBottom: 8,
+    display: 'flex', flexDirection: 'column', minWidth: 80,
+  },
+  subItem: {
+    background: 'transparent', border: 'none', color: '#fff', fontSize: 13,
+    padding: '6px 12px', cursor: 'pointer', borderRadius: 4, textAlign: 'left',
   },
 }
