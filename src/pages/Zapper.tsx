@@ -205,10 +205,8 @@ export default function Zapper() {
     const nextIdx = currentIdx + 1
     if (episodes && nextIdx < episodes.length) {
       setEpisodeIndexMap(prev => ({ ...prev, [seriesId]: nextIdx }))
-      setCurrentEpisode(episodes[nextIdx])
-    } else {
-      changeChannel(1)
     }
+    changeChannel(1)
   }, [channels, currentIndex, episodeQueues, episodeIndexMap, saveProgress, changeChannel])
 
   const handleEnded = useCallback(() => {
