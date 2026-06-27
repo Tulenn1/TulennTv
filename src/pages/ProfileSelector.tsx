@@ -89,7 +89,7 @@ export default function ProfileSelector() {
 const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    height: '100vh', background: '#0a0a0a', padding: 20,
+    height: '100vh', background: 'var(--bg-primary)', padding: 20,
   },
   card: {
     textAlign: 'center' as const, maxWidth: 600,
@@ -110,11 +110,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     width: '100%', padding: '12px 16px', fontSize: 16,
-    background: '#1f1f1f', border: '1px solid #333', borderRadius: 8,
+    background: 'var(--bg-card)', border: '1px solid #333', borderRadius: 8,
     color: '#fff', marginTop: 16,
   },
   avatarBtn: {
-    fontSize: 32, background: '#1f1f1f', border: '2px solid transparent',
+    fontSize: 32, background: 'var(--bg-card)', border: '2px solid transparent',
     borderRadius: 8, padding: 8, cursor: 'pointer', transition: 'all 0.2s',
   },
   btnPrimary: {

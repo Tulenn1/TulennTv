@@ -95,12 +95,12 @@ export default function TvConnect() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a', padding: 20 },
+  container: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-primary)', padding: 20 },
   card: { textAlign: 'center', maxWidth: 500, width: '100%' },
   logo: { fontSize: 48, color: '#e50914', fontWeight: 800, marginBottom: 8, letterSpacing: -1 },
   subtitle: { fontSize: 22, fontWeight: 600, marginBottom: 24 },
   qrBox: { background: '#fff', borderRadius: 12, padding: 16, display: 'inline-block', marginBottom: 20 },
-  infoBox: { background: '#1f1f1f', borderRadius: 8, padding: '12px 16px', marginBottom: 12, textAlign: 'left' as const },
+  infoBox: { background: 'var(--bg-card)', borderRadius: 8, padding: '12px 16px', marginBottom: 12, textAlign: 'left' as const },
   label: { fontSize: 12, color: '#666', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   url: { fontSize: 20, fontWeight: 700, color: '#e50914', fontFamily: 'monospace' },
   urlMuted: { fontSize: 16, fontWeight: 600, color: '#888', fontFamily: 'monospace' },
