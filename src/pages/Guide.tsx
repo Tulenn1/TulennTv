@@ -8,6 +8,7 @@ const SLOT_MINUTES = 30
 const HOURS_RANGE = 4
 
 interface Program {
+  seriesId: string
   seriesTitle: string
   episodeTitle: string
   episodeNum: number
@@ -22,7 +23,7 @@ function formatTime(minutes: number): string {
 }
 
 function generateProgram(
-  seriesList: { title: string; episodes: { title: string; episode: number }[] }[],
+  seriesList: { id: string; title: string; episodes: { title: string; episode: number }[] }[],
   startMinute: number
 ): Program[] {
   let current = startMinute
@@ -31,6 +32,7 @@ function generateProgram(
   for (const s of seriesList) {
     for (const ep of s.episodes) {
       result.push({
+        seriesId: s.id,
         seriesTitle: s.title,
         episodeTitle: ep.title,
         episodeNum: ep.episode,
@@ -196,7 +198,7 @@ export default function Guide() {
                 const seriesList = ch.seriesIds
                   .map(sid => allSeries[sid])
                   .filter(Boolean)
-                  .map(s => ({ title: s!.title, episodes: s!.episodes }))
+                  .map(s => ({ id: s!.id, title: s!.title, episodes: s!.episodes }))
                 const program = generateProgram(seriesList, gridStart)
                 const nowSlot = findNowSlot(program, nowMin)
 
@@ -218,14 +220,15 @@ export default function Guide() {
                               ...styles.programBlock,
                               left: `${left}%`,
                               width: `${width}%`,
-                              background: isNow ? '#e50914' : '#1f1f1f',
+                              background: isNow ? '#e50914' : 'var(--bg-card)',
                             }}
                             title={`${p.seriesTitle} - ${p.episodeTitle}`}
+                            onClick={() => navigate(`/zapper?series=${p.seriesId}`)}
                           >
                             <span style={{ fontSize: 10, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {p.seriesTitle}
                             </span>
-                            <span style={{ fontSize: 9, color: isNow ? '#fff' : '#888' }}>Ep {p.episodeNum}</span>
+                            <span style={{ fontSize: 9, color: isNow ? '#fff' : 'var(--text-secondary)' }}>Ep {p.episodeNum}</span>
                           </div>
                         )
                       })}
@@ -245,20 +248,20 @@ export default function Guide() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { display: 'flex', height: '100vh', background: '#0a0a0a', color: '#fff' },
-  sidebar: { width: 200, background: '#141414', padding: 20, display: 'flex', flexDirection: 'column', gap: 24, borderRight: '1px solid #1f1f1f' },
+  container: { display: 'flex', height: '100vh', background: 'var(--bg-primary)', color: '#fff' },
+  sidebar: { width: 200, background: 'var(--bg-secondary)', padding: 20, display: 'flex', flexDirection: 'column', gap: 24, borderRight: '1px solid #1f1f1f' },
   logo: { fontSize: 20, fontWeight: 800, color: '#e50914' },
   nav: { display: 'flex', flexDirection: 'column', gap: 4 },
   navBtn: { padding: '10px 16px', background: 'transparent', color: '#a0a0a0', borderRadius: 6, textAlign: 'left', fontSize: 14 },
-  navBtnActive: { padding: '10px 16px', background: '#1f1f1f', color: '#fff', borderRadius: 6, textAlign: 'left', fontSize: 14, fontWeight: 600 },
+  navBtnActive: { padding: '10px 16px', background: 'var(--bg-card)', color: '#fff', borderRadius: 6, textAlign: 'left', fontSize: 14, fontWeight: 600 },
   main: { flex: 1, padding: 24, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 16 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
   title: { fontSize: 28, fontWeight: 700 },
-  searchInput: { padding: '8px 14px', background: '#1f1f1f', border: '1px solid #333', borderRadius: 8, color: '#fff', fontSize: 14, minWidth: 200 },
-  viewToggle: { display: 'flex', background: '#1f1f1f', borderRadius: 6, overflow: 'hidden' },
+  searchInput: { padding: '8px 14px', background: 'var(--bg-card)', border: '1px solid #333', borderRadius: 8, color: '#fff', fontSize: 14, minWidth: 200 },
+  viewToggle: { display: 'flex', background: 'var(--bg-card)', borderRadius: 6, overflow: 'hidden' },
   viewBtn: { padding: '6px 14px', background: 'transparent', color: '#888', border: 'none', fontSize: 13, cursor: 'pointer' },
   viewActive: { padding: '6px 14px', background: '#e50914', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  seriesTag: { padding: '2px 8px', background: '#141414', borderRadius: 10, fontSize: 11, color: '#aaa' },
+  seriesTag: { padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: 10, fontSize: 11, color: '#aaa' },
   table: { display: 'flex', flexDirection: 'column', gap: 2 },
   tableHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', color: '#666', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, borderBottom: '1px solid #1f1f1f' },
   tableRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 6, fontSize: 15 },
@@ -275,7 +278,7 @@ const styles: Record<string, React.CSSProperties> = {
   nowLine: { position: 'absolute', top: 0, bottom: 0, width: 2, background: '#e50914', zIndex: 10, pointerEvents: 'none' as const },
   nowArrow: { position: 'absolute', top: -6, left: -5, width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid #e50914' },
   gridRow: { display: 'flex', height: 64, borderBottom: '1px solid #141414' },
-  channelLabel: { width: 180, flexShrink: 0, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, background: '#141414' },
+  channelLabel: { width: 180, flexShrink: 0, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, background: 'var(--bg-secondary)' },
   programRow: { flex: 1, position: 'relative', overflow: 'visible' as const },
   programBlock: {
     position: 'absolute', top: 4, bottom: 4, borderRadius: 4, padding: '2px 6px',

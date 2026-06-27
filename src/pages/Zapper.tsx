@@ -296,6 +296,16 @@ export default function Zapper() {
         favorite={(channels[currentIndex] as any)?.favorite}
         totalEpisodes={episodeQueues[channels[currentIndex]?.id]?.length}
         currentEpisodeIndex={episodeIndexMap[channels[currentIndex]?.id] ?? 0}
+        nextEpisodes={(() => {
+          const episodes = episodeQueues[channels[currentIndex]?.id]
+          const index = episodeIndexMap[channels[currentIndex]?.id] ?? 0
+          if (!episodes || index >= episodes.length - 1) return undefined
+          return episodes.slice(index + 1, index + 4).map(e => ({
+            title: e.title,
+            season: e.season,
+            episode: e.episode,
+          }))
+        })()}
       />
 
       <PlayerControls

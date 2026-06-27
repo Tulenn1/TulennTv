@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from './context/AppContext'
+import { useTheme } from './context/ThemeContext'
 import ProfileSelector from './pages/ProfileSelector'
 import Library from './pages/Library'
 import Zapper from './pages/Zapper'
@@ -64,14 +65,15 @@ const mobileNav: Record<string, React.CSSProperties> = {
 
 export default function App() {
   const { profile, loading } = useApp()
+  const { theme, toggle } = useTheme()
   const location = useLocation()
   const isZapping = location.pathname === '/zapper'
   const [faqOpen, setFaqOpen] = useState(false)
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0a0a' }}>
-        <div style={{ color: '#e50914', fontSize: 24 }}>TulennTv</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-primary)' }}>
+        <div style={{ color: 'var(--accent)', fontSize: 24 }}>TulennTv</div>
       </div>
     )
   }
@@ -91,7 +93,12 @@ export default function App() {
       </Routes>
 
       {profile && !isZapping && (
-        <button style={styles.faqBtn} onClick={() => setFaqOpen(true)} title="Ayuda">?</button>
+        <>
+          <button style={styles.faqBtn} onClick={() => setFaqOpen(true)} title="Ayuda">?</button>
+          <button style={styles.themeBtn} onClick={toggle} title="Cambiar tema">
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </>
       )}
 
       <FaqModal open={faqOpen} onClose={() => setFaqOpen(false)} />
@@ -103,8 +110,15 @@ const styles: Record<string, React.CSSProperties> = {
   faqBtn: {
     position: 'fixed', bottom: 80, right: 20, zIndex: 999,
     width: 40, height: 40, borderRadius: '50%',
-    background: '#e50914', color: '#fff', fontSize: 18, fontWeight: 700,
+    background: 'var(--accent)', color: '#fff', fontSize: 18, fontWeight: 700,
     border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(229,9,20,0.4)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  themeBtn: {
+    position: 'fixed', bottom: 80, right: 68, zIndex: 999,
+    width: 40, height: 40, borderRadius: '50%',
+    background: 'var(--bg-card)', color: 'var(--text-primary)',
+    fontSize: 18, border: '1px solid var(--border)',
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
 }

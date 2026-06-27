@@ -54,7 +54,7 @@ export default function SeriesCard({ series, onClick, onDelete, onChangeType, fa
               key={t}
               style={{
                 ...styles.typeOption,
-                background: series.type === t ? '#e50914' : '#333',
+                background: series.type === t ? '#e50914' : 'var(--border)',
               }}
               onClick={(e) => { e.stopPropagation(); onChangeType(t); setShowTypes(false) }}
             >
@@ -73,11 +73,11 @@ export default function SeriesCard({ series, onClick, onDelete, onChangeType, fa
 const styles: Record<string, React.CSSProperties> = {
   wrapper: { position: 'relative' as const },
   card: {
-    background: '#1f1f1f', borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
+    background: 'var(--bg-card)', borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
     border: 'none', padding: 0, textAlign: 'left', color: '#fff',
     display: 'block', width: '100%',
   },
-  thumbnail: { position: 'relative', width: '100%', aspectRatio: '2/3', background: '#141414' },
+  thumbnail: { position: 'relative', width: '100%', aspectRatio: '2/3', background: 'var(--bg-secondary)' },
   poster: { width: '100%', height: '100%', objectFit: 'cover', position: 'absolute' as const, top: 0, left: 0 },
   placeholder: {
     width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
@@ -103,7 +103,7 @@ const styles: Record<string, React.CSSProperties> = {
   typeMenu: {
     position: 'absolute', bottom: 40, left: 8, zIndex: 10,
     display: 'flex', flexDirection: 'column', gap: 2,
-    background: '#1f1f1f', borderRadius: 6, overflow: 'hidden',
+    background: 'var(--bg-card)', borderRadius: 6, overflow: 'hidden',
     boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
   },
   typeOption: {

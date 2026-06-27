@@ -1,3 +1,9 @@
+interface NextEpisode {
+  title: string
+  season: number
+  episode: number
+}
+
 interface Props {
   visible: boolean
   channelName: string
@@ -9,11 +15,12 @@ interface Props {
   totalEpisodes?: number
   currentEpisodeIndex?: number
   favorite?: boolean
+  nextEpisodes?: NextEpisode[]
 }
 
 export default function ZapperOverlay({
   visible, channelName, episodeTitle, season, episode,
-  channelNumber, totalChannels, totalEpisodes, currentEpisodeIndex, favorite,
+  channelNumber, totalChannels, totalEpisodes, currentEpisodeIndex, favorite, nextEpisodes,
 }: Props) {
   return (
     <div style={{
@@ -40,6 +47,19 @@ export default function ZapperOverlay({
             )}
           </div>
           <span style={styles.episodeTitle}>{episodeTitle}</span>
+          {nextEpisodes && nextEpisodes.length > 0 && (
+            <div style={styles.queueBox}>
+              <span style={styles.queueLabel}>Próximos:</span>
+              <div style={styles.queueList}>
+                {nextEpisodes.map((ep, i) => (
+                  <span key={i} style={styles.queueItem}>
+                    S{ep.season}E{ep.episode} {ep.title}
+                    {i < nextEpisodes.length - 1 && <span style={{ color: 'var(--text-secondary)', margin: '0 4px' }}>→</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div style={styles.hints}>
           ← → episodio  ·  ↑ guía  ·  ↓ info
@@ -67,5 +87,9 @@ const styles: Record<string, React.CSSProperties> = {
   season: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 600 },
   episodeTitle: { fontSize: 16, fontWeight: 600, textShadow: '0 2px 4px rgba(0,0,0,0.8)' },
   epCount: { fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 600 },
+  queueBox: { display: 'flex', flexDirection: 'column', gap: 2, marginTop: 6 },
+  queueLabel: { fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 },
+  queueList: { display: 'flex', flexWrap: 'wrap', gap: 2, fontSize: 12, color: 'rgba(255,255,255,0.8)' },
+  queueItem: { whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 },
   hints: { fontSize: 11, color: 'rgba(255,255,255,0.4)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' },
 }
