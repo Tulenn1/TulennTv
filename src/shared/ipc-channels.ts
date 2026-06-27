@@ -3,6 +3,7 @@ export const IPC = {
   SCAN_DIRECTORY: 'scanner:scan-directory',
   SCAN_ALL: 'scanner:scan-all',
   ADD_MANUAL: 'scanner:add-manual',
+  GET_SCAN_STATUS: 'scanner:get-status',
 
   // Library
   GET_LIBRARY: 'library:get-all',

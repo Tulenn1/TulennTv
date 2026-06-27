@@ -154,11 +154,21 @@ export default function Folders() {
     await load()
   }
 
+  const waitForScan = async () => {
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 1000))
+      const status = await api.getScanStatus()
+      if (status.status === 'done' || status.status === 'error') return status
+    }
+    return { status: 'timeout' as const, progress: { current: 0, total: 0 } }
+  }
+
   const handleScanMediaFolder = async () => {
     if (!mediaFolder) return
     setLoading(true)
     try {
-      await api.scanDirectory(mediaFolder)
+      const result = await api.scanDirectory(mediaFolder)
+      if (result.status === 'scanning') await waitForScan()
       await load()
     } catch (err) {
       console.error(err)
@@ -177,7 +187,8 @@ export default function Folders() {
     setLoading(true)
     try {
       await api.deleteFolder(path)
-      await api.scanDirectory(path)
+      const result = await api.scanDirectory(path)
+      if (result.status === 'scanning') await waitForScan()
       await load()
     } catch (err) {
       console.error(err)

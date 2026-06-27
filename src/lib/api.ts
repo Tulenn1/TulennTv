@@ -23,6 +23,10 @@ export function getVideoUrl(filePath: string): string {
   return `/api/serve-file/${encoded}`
 }
 
+export function getSubtitleUrl(episodeId: string, index: number): string {
+  return `/api/subtitles/${episodeId}/${index}`
+}
+
 export function selectFolderWeb(): Promise<string | null> {
   const path = window.prompt('Ingresá la ruta de la carpeta a escanear (ej: /mnt/c/Users/Benja/Downloads):')
   return Promise.resolve(path || null)
@@ -108,13 +112,18 @@ export const api = {
   },
 
   // Scanner
-  async scanDirectory(dirPath: string, type?: string): Promise<SeriesWithEpisodes[]> {
+  async scanDirectory(dirPath: string, type?: string): Promise<{ status: string }> {
     if (isElectron) return ipcInvoke(IPC.SCAN_DIRECTORY, dirPath, type)
     return fetchApi('/api/scanner', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: dirPath, type }),
     })
+  },
+
+  async getScanStatus(): Promise<{ status: string; progress: { current: number; total: number }; error?: string }> {
+    if (isElectron) return ipcInvoke(IPC.GET_SCAN_STATUS)
+    return fetchApi('/api/scanner/status')
   },
 
   // Favorites

@@ -15,6 +15,7 @@ import posterRouter from './routes/poster'
 import settingsRouter from './routes/settings'
 import browseRouter from './routes/browse'
 import connectRouter from './routes/connect'
+import subtitlesRouter from './routes/subtitles'
 import { streamVideo } from './streamer'
 import { ensureAutoChannels } from './channels'
 import { backupDatabase, cleanupOldBackups } from './backup'
@@ -44,6 +45,7 @@ app.use('/api/poster', posterRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/browse', browseRouter)
 app.use('/api/connect', connectRouter)
+app.use('/api/subtitles', subtitlesRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() })

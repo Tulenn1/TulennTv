@@ -22,6 +22,7 @@ export interface Episode {
   season: number
   episode: number
   duration: number
+  subtitles?: string
 }
 
 export interface WatchProgress {
