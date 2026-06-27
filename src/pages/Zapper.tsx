@@ -29,6 +29,7 @@ export default function Zapper() {
   const [loading, setLoading] = useState(true)
   const controlsTimeout = useRef<ReturnType<typeof setTimeout>>()
   const playerRef = useRef<HTMLVideoElement>(null)
+  const advanceEpisodeRef = useRef<() => Promise<void>>(async () => {})
   const [subtitleTracks, setSubtitleTracks] = useState<{ url: string; label: string; lang: string }[]>([])
   const [activeSubtitle, setActiveSubtitle] = useState<number | null>(null)
 
@@ -43,13 +44,21 @@ export default function Zapper() {
     if (!profile) return
     setLoading(true)
     try {
-      const chList = await api.getChannels()
+      const [chList, library] = await Promise.all([
+        api.getChannels(),
+        api.getLibrary(undefined, undefined, profile.id),
+      ])
+
       if (chList.length === 0) {
         setChannels([])
         setLoading(false)
         return
       }
       setChannels(chList)
+
+      const libMap: Record<string, SeriesWithEpisodes> = {}
+      const detailPromises = library.map(s => api.getSeries(s.id, profile.id).then(d => { if (d) libMap[s.id] = d }))
+      await Promise.all(detailPromises)
 
       const data: Record<string, SeriesWithEpisodes[]> = {}
       const initialSeriesId = searchParams.get('series')
@@ -58,12 +67,7 @@ export default function Zapper() {
 
       for (let ci = 0; ci < chList.length; ci++) {
         const ch = chList[ci]
-        const seriesList: SeriesWithEpisodes[] = []
-        for (const sid of ch.seriesIds) {
-          const detail = await api.getSeries(sid, profile.id)
-          if (detail) seriesList.push(detail)
-        }
-        data[ch.id] = seriesList
+        data[ch.id] = ch.seriesIds.map(sid => libMap[sid]).filter(Boolean) as SeriesWithEpisodes[]
 
         if (initialSeriesId && ch.seriesIds.includes(initialSeriesId)) {
           targetChannelIdx = ci
@@ -83,9 +87,20 @@ export default function Zapper() {
 
   useEffect(() => { loadChannels() }, [loadChannels])
 
-  const playSeries = useCallback((chId: string, sIdx: number) => {
-    const seriesList = channelData[chId]
-    const series = seriesList?.[sIdx]
+  const channelDataRef = useRef(channelData)
+  channelDataRef.current = channelData
+  const channelIdxRef = useRef(currentChannelIdx)
+  channelIdxRef.current = currentChannelIdx
+  const seriesIdxRef = useRef(currentSeriesIdx)
+  seriesIdxRef.current = currentSeriesIdx
+  const epIdxRef = useRef(episodeIdx)
+  epIdxRef.current = episodeIdx
+
+  useEffect(() => {
+    if (!currentChannel || loading) return
+    const sIdx = currentSeriesIdx[currentChannel.id] ?? 0
+    const list = channelDataRef.current[currentChannel.id] || []
+    const series = list[sIdx]
     if (!series?.episodes.length) return
 
     const lastEpIdx = episodeIdx[series.id] ?? 0
@@ -94,13 +109,7 @@ export default function Zapper() {
 
     const progress = (series as any).progress
     setInitialPos(progress && !progress.completed ? progress.position : undefined)
-  }, [channelData, episodeIdx])
-
-  useEffect(() => {
-    if (!currentChannel || loading) return
-    const sIdx = currentSeriesIdx[currentChannel.id] ?? 0
-    playSeries(currentChannel.id, sIdx)
-  }, [currentChannel, currentSeriesIdx, playSeries, loading])
+  }, [currentChannel?.id, currentSeriesIdx, loading])
 
   const changeChannel = useCallback((dir: 1 | -1) => {
     if (channels.length === 0) return
@@ -126,24 +135,40 @@ export default function Zapper() {
   }, [currentChannel, channelData, currentSeriesIdx])
 
   const changeEpisode = useCallback((dir: 1 | -1) => {
-    if (!currentSeries || epList.length === 0) return
-    const current = episodeIdx[currentSeries.id] ?? 0
+    const chId = channels[channelIdxRef.current]?.id
+    if (!chId) return
+    const list = channelDataRef.current[chId] || []
+    const sIdx = seriesIdxRef.current[chId] ?? 0
+    const series = list[sIdx]
+    if (!series?.episodes.length) return
+    const current = epIdxRef.current[series.id] ?? 0
     const next = current + dir
-    if (next < 0 || next >= epList.length) return
-    setEpisodeIdx(prev => ({ ...prev, [currentSeries.id]: next }))
-    setCurrentEpisode(epList[next])
+    if (next < 0 || next >= series.episodes.length) return
+    setEpisodeIdx(prev => ({ ...prev, [series.id]: next }))
+    setCurrentEpisode(series.episodes[next])
     setInitialPos(undefined)
-  }, [currentSeries, epList, episodeIdx])
+  }, [channels])
+
+  const profileRef = useRef(profile)
+  profileRef.current = profile
+  const currentEpisodeRef = useRef(currentEpisode)
+  currentEpisodeRef.current = currentEpisode
+  const timeRef = useRef({ currentTime: 0, duration: 0 })
+  timeRef.current = { currentTime, duration }
 
   const saveProgress = useCallback(async (completed?: boolean) => {
-    if (!profile || !currentEpisode) return
+    const p = profileRef.current
+    const ep = currentEpisodeRef.current
+    const t = timeRef.current
+    if (!p || !ep) return
     try {
-      const isCompleted = completed ?? (duration > 0 && currentTime >= duration - 5)
-      await api.saveProgress(profile.id, currentEpisode.id, currentTime, isCompleted)
+      const isCompleted = completed ?? (t.duration > 0 && t.currentTime >= t.duration - 5)
+      await api.saveProgress(p.id, ep.id, t.currentTime, isCompleted)
     } catch {}
-  }, [profile, currentEpisode, currentTime, duration])
+  }, [])
 
   useEffect(() => {
+    let currentId = ''
     const handleKeyDown = (e: KeyboardEvent) => {
       setShowControls(true)
       clearTimeout(controlsTimeout.current)
@@ -166,7 +191,7 @@ export default function Zapper() {
           e.preventDefault()
           setPlaying(p => !p)
           if (playerRef.current) {
-            playing ? playerRef.current.pause() : playerRef.current.play()
+            playerRef.current.paused ? playerRef.current.play() : playerRef.current.pause()
           }
           break
         case 'f':
@@ -184,9 +209,6 @@ export default function Zapper() {
         case 'I':
           setShowInfo(prev => !prev)
           setShowGuide(false)
-          if (!overview && currentSeries) {
-            api.getSeriesOverview(currentSeries.id).then(setOverview)
-          }
           break
         case 'Escape':
           saveProgress()
@@ -199,44 +221,51 @@ export default function Zapper() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       clearTimeout(controlsTimeout.current)
-      saveProgress()
     }
-  }, [playing, navigate, saveProgress, changeChannel, changeEpisode, overview, currentSeries])
+  }, [changeChannel, changeEpisode, saveProgress, navigate])
 
   useEffect(() => {
     if (channels.length < 2) return
-    for (const ch of channels) {
-      const list = channelData[ch.id] || []
-      for (const s of list) {
-        if (!episodeIdx[s.id]) {
-          setEpisodeIdx(prev => ({ ...prev, [s.id]: 0 }))
+    const data = channelDataRef.current
+    setEpisodeIdx(prev => {
+      let changed = false
+      const next = { ...prev }
+      for (const ch of channels) {
+        for (const s of data[ch.id] || []) {
+          if (next[s.id] === undefined) {
+            next[s.id] = 0
+            changed = true
+          }
         }
       }
-    }
-  }, [channels, channelData, episodeIdx])
+      return changed ? next : prev
+    })
+  }, [channels])
 
   const advanceEpisode = useCallback(async () => {
-    if (!currentChannel) return
     await saveProgress(true)
 
-    const list = channelData[currentChannel.id] || []
-    const sIdx = currentSeriesIdx[currentChannel.id] ?? 0
+    const chId = channels[channelIdxRef.current]?.id
+    if (!chId) return
+    const list = channelDataRef.current[chId] || []
+    const sIdx = seriesIdxRef.current[chId] ?? 0
     const series = list[sIdx]
     if (series) {
-      const eIdx = episodeIdx[series.id] ?? 0
+      const eIdx = epIdxRef.current[series.id] ?? 0
       if (eIdx + 1 < series.episodes.length) {
         setEpisodeIdx(prev => ({ ...prev, [series.id]: eIdx + 1 }))
       }
     }
     if (list.length > 0) {
-      const nextSeries = (sIdx + 1) % list.length
-      setCurrentSeriesIdx(prev => ({ ...prev, [currentChannel.id]: nextSeries }))
+      setCurrentSeriesIdx(prev => ({ ...prev, [chId]: (sIdx + 1) % list.length }))
     }
-  }, [currentChannel, channelData, currentSeriesIdx, episodeIdx, saveProgress])
+  }, [saveProgress, channels])
+
+  advanceEpisodeRef.current = advanceEpisode
 
   const handleEnded = useCallback(() => {
-    advanceEpisode()
-  }, [advanceEpisode])
+    advanceEpisodeRef.current()
+  }, [])
 
   const handleTimeUpdate = useCallback((time: number, dur: number) => {
     setCurrentTime(time)
@@ -251,11 +280,16 @@ export default function Zapper() {
   }, [])
 
   const handleTogglePlay = useCallback(() => {
-    setPlaying(p => !p)
-    if (playerRef.current) {
-      playing ? playerRef.current.pause() : playerRef.current.play()
+    const video = playerRef.current
+    if (!video) return
+    if (video.paused) {
+      video.play()
+      setPlaying(true)
+    } else {
+      video.pause()
+      setPlaying(false)
     }
-  }, [playing])
+  }, [])
 
   useEffect(() => {
     if (!currentEpisode?.subtitles) {
@@ -277,6 +311,11 @@ export default function Zapper() {
       setActiveSubtitle(null)
     }
   }, [currentEpisode])
+
+  useEffect(() => {
+    if (!showInfo || !currentSeries) return
+    api.getSeriesOverview(currentSeries.id).then(setOverview)
+  }, [showInfo, currentSeries?.id])
 
   if (loading) {
     return <div style={styles.loading}>Cargando canales...</div>
