@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express'
+import { v4 as uuid } from 'uuid'
 import { getDb } from '../database'
 import { syncAutoChannels } from '../channels'
+import { validate, channelCreateSchema, channelReorderSchema } from '../validation'
 
 const router = Router()
 
@@ -18,24 +20,19 @@ router.get('/', (_req: Request, res: Response) => {
   res.json(rows)
 })
 
-router.post('/', (req: Request, res: Response) => {
+router.post('/', validate(channelCreateSchema), (req: Request, res: Response) => {
   const { name, icon, seriesIds } = req.body
-  if (!name) {
-    res.status(400).json({ error: 'INVALID_INPUT', message: 'Name is required' })
-    return
-  }
   const db = getDb()
-  const { v4: uuid } = require('uuid')
   const id = uuid()
   const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 as next FROM channels').get() as { next: number }
 
-  db.prepare('INSERT INTO channels (id, name, icon, type, sort_order) VALUES (?, ?, ?, ?, ?)').run(id, name, icon || '📺', 'custom', maxOrder.next)
+  db.prepare('INSERT INTO channels (id, name, icon, type, sort_order) VALUES (?, ?, ?, ?, ?)').run(id, name, icon, 'custom', maxOrder.next)
   const insert = db.prepare('INSERT INTO channel_series (channel_id, series_id, sort_order) VALUES (?, ?, ?)')
-  for (let i = 0; i < (seriesIds || []).length; i++) {
+  for (let i = 0; i < seriesIds.length; i++) {
     insert.run(id, seriesIds[i], i)
   }
 
-  res.status(201).json({ id, name, icon: icon || '📺', type: 'custom', sortOrder: maxOrder.next, seriesIds: seriesIds || [] })
+  res.status(201).json({ id, name, icon, type: 'custom', sortOrder: maxOrder.next, seriesIds })
 })
 
 router.put('/:id', (req: Request, res: Response) => {
@@ -56,12 +53,8 @@ router.delete('/:id', (req: Request, res: Response) => {
   res.json({ success: true })
 })
 
-router.post('/reorder', (req: Request, res: Response) => {
+router.post('/reorder', validate(channelReorderSchema), (req: Request, res: Response) => {
   const { ids } = req.body
-  if (!ids || !Array.isArray(ids)) {
-    res.status(400).json({ error: 'INVALID_INPUT', message: 'ids array is required' })
-    return
-  }
   const db = getDb()
   for (let i = 0; i < ids.length; i++) {
     db.prepare('UPDATE channels SET sort_order = ? WHERE id = ?').run(i, ids[i])

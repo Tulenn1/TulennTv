@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { getDb } from '../database'
+import { validate, folderDeleteSchema } from '../validation'
 
 const router = Router()
 
@@ -17,12 +18,8 @@ router.get('/', (_req: Request, res: Response) => {
   res.json(result)
 })
 
-router.post('/delete', (req: Request, res: Response) => {
+router.post('/delete', validate(folderDeleteSchema), (req: Request, res: Response) => {
   const { path } = req.body
-  if (!path) {
-    res.status(400).json({ error: 'INVALID_INPUT', message: 'path is required' })
-    return
-  }
   const db = getDb()
   db.prepare("DELETE FROM episodes WHERE series_id IN (SELECT id FROM series WHERE path LIKE ?)").run(path + '%')
   const info = db.prepare("DELETE FROM series WHERE path LIKE ?").run(path + '%')

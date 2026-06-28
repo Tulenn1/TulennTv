@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import fs from 'fs'
 import { scanAndImport } from '../scanner'
 import { asyncHandler } from '../utils/async-handler'
+import { validate, scanSchema } from '../validation'
 import { getDb } from '../database'
 
 const router = Router()
@@ -30,13 +31,9 @@ router.get('/status', (_req: Request, res: Response) => {
   res.json(scanState)
 })
 
-router.post('/', asyncHandler(async (req: Request, res: Response) => {
-  const rawPath = req.body.path as string | undefined
-  const type = req.body.type as string | undefined
-  if (!rawPath) {
-    res.status(400).json({ error: 'INVALID_INPUT', message: 'path is required' })
-    return
-  }
+router.post('/', validate(scanSchema), asyncHandler(async (req: Request, res: Response) => {
+  const rawPath = req.body.path
+  const type = req.body.type
   if (scanState.status === 'scanning') {
     res.status(409).json({ error: 'SCAN_IN_PROGRESS', message: 'A scan is already in progress' })
     return
@@ -55,13 +52,9 @@ router.post('/', asyncHandler(async (req: Request, res: Response) => {
   }
 }))
 
-router.post('/directory', asyncHandler(async (req: Request, res: Response) => {
-  const rawPath = req.body.path as string | undefined
-  const type = req.body.type as string | undefined
-  if (!rawPath) {
-    res.status(400).json({ error: 'INVALID_INPUT', message: 'path is required' })
-    return
-  }
+router.post('/directory', validate(scanSchema), asyncHandler(async (req: Request, res: Response) => {
+  const rawPath = req.body.path
+  const type = req.body.type
   if (scanState.status === 'scanning') {
     res.status(409).json({ error: 'SCAN_IN_PROGRESS', message: 'A scan is already in progress' })
     return

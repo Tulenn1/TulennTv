@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import { getDb } from './database'
 
 interface ChannelRow { id: string; name: string }
@@ -14,7 +15,6 @@ export function ensureAutoChannels(): void {
   for (const t of types) {
     const hasAuto = existing.find((c: ChannelRow) => c.name === typeLabels[t])
     if (!hasAuto) {
-      const { v4: uuid } = require('uuid')
       const id = uuid()
       db.prepare('INSERT INTO channels (id, name, icon, type) VALUES (?, ?, ?, ?)').run(id, typeLabels[t], typeIcons[t], 'auto')
     }

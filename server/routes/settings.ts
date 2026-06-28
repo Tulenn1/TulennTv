@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import { getDb } from '../database'
+import { validate, mediaFolderSchema, tmdbKeySchema } from '../validation'
 
 const router = Router()
 
@@ -43,12 +44,8 @@ router.get('/media-folder', (_req: Request, res: Response) => {
   res.json({ path: row?.value || '' })
 })
 
-router.put('/media-folder', (req: Request, res: Response) => {
+router.put('/media-folder', validate(mediaFolderSchema), (req: Request, res: Response) => {
   const { path: folderPath } = req.body
-  if (!folderPath) {
-    res.status(400).json({ error: 'INVALID_INPUT', message: 'path is required' })
-    return
-  }
   const db = getDb()
   db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run('media_folder', folderPath)
   res.json({ success: true, path: folderPath })
@@ -76,7 +73,7 @@ router.get('/tmdb-key', (_req: Request, res: Response) => {
   res.json({ key: row?.value || '' })
 })
 
-router.put('/tmdb-key', (req: Request, res: Response) => {
+router.put('/tmdb-key', validate(tmdbKeySchema), (req: Request, res: Response) => {
   const { key } = req.body
   const db = getDb()
   db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run('tmdb_key', key || '')
