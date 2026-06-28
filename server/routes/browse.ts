@@ -24,8 +24,9 @@ router.get('/:dir(*)', (req: Request, res: Response) => {
 
     const parent = dirPath === '/' ? null : path.dirname(dirPath)
     res.json({ current: dirPath, parent, items })
-  } catch (err: any) {
-    res.status(500).json({ error: 'BROWSE_ERROR', message: err.message })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    res.status(500).json({ error: 'BROWSE_ERROR', message })
   }
 })
 

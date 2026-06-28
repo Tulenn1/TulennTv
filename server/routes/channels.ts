@@ -7,7 +7,8 @@ const router = Router()
 router.get('/', (_req: Request, res: Response) => {
   const db = getDb()
   syncAutoChannels()
-  const rows = db.prepare('SELECT id, name, icon, type, sort_order as sortOrder FROM channels ORDER BY sort_order ASC').all() as any[]
+  interface ChannelRow { id: string; name: string; icon: string; type: string; sortOrder: number; seriesIds?: string[] }
+  const rows = db.prepare('SELECT id, name, icon, type, sort_order as sortOrder FROM channels ORDER BY sort_order ASC').all() as ChannelRow[]
 
   const getSeries = db.prepare('SELECT series_id FROM channel_series WHERE channel_id = ? ORDER BY sort_order ASC')
   for (const ch of rows) {

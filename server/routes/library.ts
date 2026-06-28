@@ -25,11 +25,13 @@ router.get('/', (req: Request, res: Response) => {
   }
   query += ' ORDER BY title ASC'
 
-  const series = db.prepare(query).all(...params) as { id: string; title: string; type: string; path: string; poster: string; addedAt: string }[]
+  interface LibraryRow { id: string; title: string; type: string; path: string; poster: string; addedAt: string }
+  const series = db.prepare(query).all(...params) as LibraryRow[]
 
   const profileId = req.query.profileId as string | undefined
   if (profileId) {
-    const favIds = db.prepare('SELECT series_id FROM favorites WHERE profile_id = ?').all(profileId).map((r: any) => r.series_id)
+    const rows = db.prepare('SELECT series_id FROM favorites WHERE profile_id = ?').all(profileId) as { series_id: string }[]
+    const favIds = rows.map(r => r.series_id)
     const result = series.map(s => ({ ...s, favorite: favIds.includes(s.id) }))
     res.json(result)
     return
@@ -38,9 +40,17 @@ router.get('/', (req: Request, res: Response) => {
   res.json(series)
 })
 
+interface SeriesDetailRow {
+  id: string; title: string; type: string; path: string; poster: string; addedAt: string
+}
+
+interface ProgressRow {
+  id: string; profileId: string; episodeId: string; position: number; completed: number; watchedAt: string
+}
+
 router.get('/:id', (req: Request, res: Response) => {
   const db = getDb()
-  const series = db.prepare('SELECT id, title, type, path, poster, added_at as addedAt FROM series WHERE id = ?').get(req.params.id) as any
+  const series = db.prepare('SELECT id, title, type, path, poster, added_at as addedAt FROM series WHERE id = ?').get(req.params.id) as SeriesDetailRow | undefined
   if (!series) {
     res.status(404).json({ error: 'NOT_FOUND', message: 'Series not found' })
     return
@@ -49,7 +59,7 @@ router.get('/:id', (req: Request, res: Response) => {
   const episodes = db.prepare('SELECT id, series_id as seriesId, title, path, season, episode, duration FROM episodes WHERE series_id = ? ORDER BY season ASC, episode ASC').all(req.params.id)
 
   let favorite = false
-  let progress = null
+  let progress: ProgressRow | null = null
   const profileId = req.query.profileId as string | undefined
   if (profileId) {
     const fav = db.prepare('SELECT 1 FROM favorites WHERE profile_id = ? AND series_id = ?').get(profileId, req.params.id)
@@ -57,7 +67,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
     const lastWatched = db.prepare(
       'SELECT id, profile_id as profileId, episode_id as episodeId, position, completed, watched_at as watchedAt FROM watch_progress WHERE profile_id = ? AND episode_id IN (SELECT id FROM episodes WHERE series_id = ?) ORDER BY watched_at DESC LIMIT 1'
-    ).get(profileId, req.params.id) as any
+    ).get(profileId, req.params.id) as ProgressRow | undefined
     progress = lastWatched || null
   }
 

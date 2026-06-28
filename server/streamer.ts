@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { Request, Response } from 'express'
 import { getDb } from './database'
 
 export function getEpisodePath(episodeId: string): string | null {
@@ -8,7 +9,7 @@ export function getEpisodePath(episodeId: string): string | null {
   return row?.path || null
 }
 
-export function streamVideo(filePath: string, req: any, res: any): void {
+export function streamVideo(filePath: string, req: Request, res: Response): void {
   if (!fs.existsSync(filePath)) {
     res.status(404).json({ error: 'NOT_FOUND', message: 'File not found' })
     return
