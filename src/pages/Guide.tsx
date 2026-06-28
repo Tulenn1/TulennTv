@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { api } from '../lib/api'
-import { Channel, Series, SeriesWithEpisodes } from '../shared/types'
+import { Channel, SeriesWithEpisodes } from '../shared/types'
 
 const SLOT_MINUTES = 30
 const HOURS_RANGE = 4
@@ -10,6 +10,7 @@ const HOURS_RANGE = 4
 interface Program {
   seriesId: string
   seriesTitle: string
+  episodeId: string
   episodeTitle: string
   episodeNum: number
   startMin: number
@@ -23,7 +24,7 @@ function formatTime(minutes: number): string {
 }
 
 function generateProgram(
-  seriesList: { id: string; title: string; episodes: { title: string; episode: number }[] }[],
+  seriesList: { id: string; title: string; episodes: { id: string; title: string; episode: number }[] }[],
   startMinute: number
 ): Program[] {
   let current = startMinute
@@ -34,6 +35,7 @@ function generateProgram(
       result.push({
         seriesId: s.id,
         seriesTitle: s.title,
+        episodeId: ep.id,
         episodeTitle: ep.title,
         episodeNum: ep.episode,
         startMin: current,
@@ -167,14 +169,18 @@ export default function Guide() {
                 <span style={{ flex: 2, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                   {ch.seriesIds.map(sid => {
                     const s = allSeries[sid]
-                    return s ? <span key={sid} style={styles.seriesTag}>{s.title}</span> : null
+                    const isMatch = search && s?.title.toLowerCase().includes(search.toLowerCase())
+                    return s ? <span key={sid} style={{ ...styles.seriesTag, background: isMatch ? 'rgba(229,9,20,0.25)' : 'var(--bg-secondary)', color: isMatch ? '#fff' : '#aaa' }}>{s.title}</span> : null
                   })}
                   {ch.seriesIds.length === 0 && <span style={{ color: '#555', fontSize: 13 }}>Sin series</span>}
                 </span>
                 <span style={{ width: 100, textAlign: 'center' }}>
                   <button style={styles.sintonizar} onClick={() => {
-                    const first = ch.seriesIds[0]
-                    if (first) navigate(`/zapper?series=${first}`)
+                    const firstSeriesId = ch.seriesIds[0]
+                    const firstSeries = firstSeriesId ? allSeries[firstSeriesId] : undefined
+                    const firstEp = firstSeries?.episodes[0]
+                    const params = `series=${firstSeriesId}` + (firstEp ? `&episode=${firstEp.id}` : '')
+                    if (firstSeriesId) navigate(`/zapper?${params}`)
                   }}>Sintonizar</button>
                 </span>
               </div>
@@ -195,24 +201,27 @@ export default function Guide() {
                 ))}
               </div>
               {visibleChannels.map(ch => {
+                const hasMatch = search && ch.seriesIds.some(sid => allSeries[sid]?.title.toLowerCase().includes(search.toLowerCase()))
                 const seriesList = ch.seriesIds
                   .map(sid => allSeries[sid])
                   .filter(Boolean)
-                  .map(s => ({ id: s!.id, title: s!.title, episodes: s!.episodes }))
+                  .map(s => ({ id: s!.id, title: s!.title, episodes: s!.episodes.map(e => ({ id: e.id, title: e.title, episode: e.episode })) }))
                 const program = generateProgram(seriesList, gridStart)
                 const nowSlot = findNowSlot(program, nowMin)
 
                 return (
                   <div key={ch.id} style={styles.gridRow}>
-                    <div style={styles.channelLabel}>
+                    <div style={{ ...styles.channelLabel, background: hasMatch ? 'rgba(229,9,20,0.15)' : 'var(--bg-secondary)' }}>
                       <span>{ch.icon}</span>
                       <span style={{ fontSize: 12 }}>{ch.name}</span>
+                      {hasMatch && <span style={{ fontSize: 9, color: '#e50914', marginLeft: 'auto' }}>●</span>}
                     </div>
                     <div style={styles.programRow}>
-                      {program.map((p, i) => {
+                        {program.map((p, i) => {
                         const left = ((p.startMin - gridStart) / (HOURS_RANGE * 60)) * 100
                         const width = ((p.endMin - p.startMin) / (HOURS_RANGE * 60)) * 100
                         const isNow = nowSlot === i
+                        const isMatch = search && p.seriesTitle.toLowerCase().includes(search.toLowerCase())
                         return (
                           <div
                             key={i}
@@ -220,15 +229,16 @@ export default function Guide() {
                               ...styles.programBlock,
                               left: `${left}%`,
                               width: `${width}%`,
-                              background: isNow ? '#e50914' : 'var(--bg-card)',
+                              background: isNow ? '#e50914' : isMatch ? 'rgba(229,9,20,0.25)' : 'var(--bg-card)',
+                              border: isMatch ? '1px solid rgba(229,9,20,0.5)' : 'none',
                             }}
                             title={`${p.seriesTitle} - ${p.episodeTitle}`}
-                            onClick={() => navigate(`/zapper?series=${p.seriesId}`)}
+                            onClick={() => navigate(`/zapper?series=${p.seriesId}&episode=${p.episodeId}`)}
                           >
-                            <span style={{ fontSize: 10, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: 10, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: isMatch ? '#fff' : undefined }}>
                               {p.seriesTitle}
                             </span>
-                            <span style={{ fontSize: 9, color: isNow ? '#fff' : 'var(--text-secondary)' }}>Ep {p.episodeNum}</span>
+                            <span style={{ fontSize: 9, color: isNow ? '#fff' : isMatch ? '#ff6b6b' : 'var(--text-secondary)' }}>Ep {p.episodeNum}</span>
                           </div>
                         )
                       })}

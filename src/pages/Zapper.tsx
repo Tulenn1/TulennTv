@@ -62,8 +62,10 @@ export default function Zapper() {
 
       const data: Record<string, SeriesWithEpisodes[]> = {}
       const initialSeriesId = searchParams.get('series')
+      const initialEpisodeId = searchParams.get('episode')
       let targetChannelIdx = 0
       let targetSeriesIdx = 0
+      const initialEpisodeIdx: Record<string, number> = {}
 
       for (let ci = 0; ci < chList.length; ci++) {
         const ch = chList[ci]
@@ -72,12 +74,18 @@ export default function Zapper() {
         if (initialSeriesId && ch.seriesIds.includes(initialSeriesId)) {
           targetChannelIdx = ci
           targetSeriesIdx = ch.seriesIds.indexOf(initialSeriesId)
+          const series = libMap[initialSeriesId]
+          if (series && initialEpisodeId) {
+            const epIdx = series.episodes.findIndex(e => e.id === initialEpisodeId)
+            if (epIdx >= 0) initialEpisodeIdx[initialSeriesId] = epIdx
+          }
         }
       }
 
       setChannelData(data)
       setCurrentChannelIdx(targetChannelIdx)
       setCurrentSeriesIdx({ [chList[targetChannelIdx].id]: targetSeriesIdx })
+      if (Object.keys(initialEpisodeIdx).length > 0) setEpisodeIdx(initialEpisodeIdx)
     } catch (err) {
       console.error(err)
     } finally {
