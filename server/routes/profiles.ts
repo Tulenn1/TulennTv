@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { v4 as uuid } from 'uuid'
 import { getDb } from '../database'
+import { validate, profileSchema, profileIdSchema } from '../validation'
 
 const router = Router()
 
@@ -10,12 +11,8 @@ router.get('/', (_req: Request, res: Response) => {
   res.json(rows)
 })
 
-router.post('/', (req: Request, res: Response) => {
+router.post('/', validate(profileSchema), (req: Request, res: Response) => {
   const { name, avatar } = req.body
-  if (!name) {
-    res.status(400).json({ error: 'INVALID_INPUT', message: 'Name is required' })
-    return
-  }
   const db = getDb()
   const id = uuid()
   db.prepare('INSERT INTO profiles (id, name, avatar) VALUES (?, ?, ?)').run(id, name, avatar || '')
@@ -39,12 +36,8 @@ router.get('/active', (_req: Request, res: Response) => {
   res.json(profile || null)
 })
 
-router.post('/active', (req: Request, res: Response) => {
+router.post('/active', validate(profileIdSchema), (req: Request, res: Response) => {
   const { profileId } = req.body
-  if (!profileId) {
-    res.status(400).json({ error: 'INVALID_INPUT', message: 'profileId is required' })
-    return
-  }
   const db = getDb()
   db.prepare('INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)').run('active_profile_id', profileId)
   res.json({ success: true })

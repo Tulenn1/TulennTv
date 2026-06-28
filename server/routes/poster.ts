@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import fs from 'fs'
 import { getDb } from '../database'
 import { asyncHandler } from '../utils/async-handler'
+import { validate, fetchAllPostersSchema } from '../validation'
 
 interface SeriesRow {
   id: string
@@ -130,9 +131,9 @@ router.get('/overview/:id', asyncHandler(async (req: Request, res: Response) => 
   res.json({ overview: '' })
 }))
 
-router.post('/fetch-all', asyncHandler(async (req: Request, res: Response) => {
+router.post('/fetch-all', validate(fetchAllPostersSchema), asyncHandler(async (req: Request, res: Response) => {
   const db = getDb()
-  const bodyKey = req.body?.tmdbKey as string | undefined
+  const bodyKey = req.body.tmdbKey
   let key = bodyKey
 
   if (!key) {
