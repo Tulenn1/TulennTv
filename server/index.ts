@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import cors from 'cors'
 import path from 'path'
 import { getDb, closeDb } from './database'
@@ -46,6 +46,14 @@ app.use('/api/settings', settingsRouter)
 app.use('/api/browse', browseRouter)
 app.use('/api/connect', connectRouter)
 app.use('/api/subtitles', subtitlesRouter)
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[ERROR]', err.message)
+  res.status(500).json({
+    error: 'INTERNAL_ERROR',
+    message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+  })
+})
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() })
