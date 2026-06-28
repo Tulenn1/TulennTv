@@ -1,16 +1,18 @@
 import { getDb } from './database'
 
+interface ChannelRow { id: string; name: string }
+
 export function ensureAutoChannels(): void {
   const db = getDb()
 
-  const existing = db.prepare('SELECT id, name FROM channels WHERE type = ?').all('auto') as any[]
+  const existing = db.prepare('SELECT id, name FROM channels WHERE type = ?').all('auto') as ChannelRow[]
 
   const types = ['anime', 'series', 'movie'] as const
   const typeLabels: Record<string, string> = { anime: 'Anime', series: 'Series', movie: 'Películas' }
   const typeIcons: Record<string, string> = { anime: '🎬', series: '📺', movie: '🎥' }
 
   for (const t of types) {
-    const hasAuto = existing.find((c: any) => c.name === typeLabels[t])
+    const hasAuto = existing.find((c: ChannelRow) => c.name === typeLabels[t])
     if (!hasAuto) {
       const { v4: uuid } = require('uuid')
       const id = uuid()
@@ -23,7 +25,7 @@ export function ensureAutoChannels(): void {
 
 export function syncAutoChannels(): void {
   const db = getDb()
-  const channels = db.prepare('SELECT id, name FROM channels WHERE type = ?').all('auto') as any[]
+  const channels = db.prepare('SELECT id, name FROM channels WHERE type = ?').all('auto') as ChannelRow[]
   const allSeries = db.prepare('SELECT id, type FROM series').all() as { id: string; type: string }[]
 
   const typeMap: Record<string, string> = { Anime: 'anime', Series: 'series', 'Películas': 'movie' }

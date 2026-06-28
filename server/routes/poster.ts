@@ -1,6 +1,23 @@
 import { Router, Request, Response } from 'express'
 import fs from 'fs'
 import { getDb } from '../database'
+import { asyncHandler } from '../utils/async-handler'
+
+interface SeriesRow {
+  id: string
+  title: string
+  poster: string
+}
+
+interface TmdbResult {
+  poster_path?: string
+  overview?: string
+  media_type?: string
+}
+
+interface TmdbSearchResponse {
+  results?: TmdbResult[]
+}
 
 const router = Router()
 
@@ -9,7 +26,7 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342'
 router.get('/:id', (req: Request, res: Response) => {
   const paramsId = req.params.id as string
   const db = getDb()
-  const row = db.prepare('SELECT id, title, poster FROM series WHERE id = ?').get(paramsId) as any
+  const row = db.prepare('SELECT id, title, poster FROM series WHERE id = ?').get(paramsId) as SeriesRow | undefined
   if (!row) {
     res.status(404).json({ error: 'NOT_FOUND', message: 'Series not found' })
     return
@@ -57,16 +74,16 @@ router.get('/:id', (req: Request, res: Response) => {
   res.status(404).json({ error: 'NOT_FOUND', message: 'No poster' })
 })
 
-async function searchTmdb(title: string, apiKey: string): Promise<any> {
+async function searchTmdb(title: string, apiKey: string): Promise<TmdbResult | undefined> {
   const searchUrl = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(title)}&api_key=${apiKey}&language=es`
   const res = await fetch(searchUrl)
-  const data: any = await res.json()
-  return data.results?.find((r: any) =>
+  const data: TmdbSearchResponse = await res.json()
+  return data.results?.find((r: TmdbResult) =>
     (r.media_type === 'tv' || r.media_type === 'movie') && r.poster_path
   ) || data.results?.[0]
 }
 
-async function fetchTmdbPoster(title: string, apiKey: string, seriesId: string, db: any): Promise<string | null> {
+async function fetchTmdbPoster(title: string, apiKey: string, seriesId: string, db: ReturnType<typeof getDb>): Promise<string | null> {
   try {
     const result = await searchTmdb(title, apiKey)
     if (result?.poster_path) {
@@ -83,8 +100,8 @@ async function fetchTmdbPoster(title: string, apiKey: string, seriesId: string, 
   return null
 }
 
-router.get('/overview/:id', async (req: Request, res: Response) => {
-  const paramsId = req.params.id as string
+router.get('/overview/:id', asyncHandler(async (req: Request, res: Response) => {
+  const paramsId = req.params.id
   const db = getDb()
 
   const cached = db.prepare("SELECT value FROM app_session WHERE key = ?").get(`overview_${paramsId}`) as { value: string } | undefined
@@ -101,21 +118,19 @@ router.get('/overview/:id', async (req: Request, res: Response) => {
 
   const tmdbKey = db.prepare("SELECT value FROM app_session WHERE key = ?").get('tmdb_key') as { value: string } | undefined
   if (tmdbKey?.value) {
-    try {
-      const result = await searchTmdb(row.title, tmdbKey.value)
-      const overview = result?.overview || ''
-      if (overview) {
-        db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run(`overview_${paramsId}`, overview)
-      }
-      res.json({ overview })
-      return
-    } catch {}
+    const result = await searchTmdb(row.title, tmdbKey.value)
+    const overview = result?.overview || ''
+    if (overview) {
+      db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run(`overview_${paramsId}`, overview)
+    }
+    res.json({ overview })
+    return
   }
 
   res.json({ overview: '' })
-})
+}))
 
-router.post('/fetch-all', async (req: Request, res: Response) => {
+router.post('/fetch-all', asyncHandler(async (req: Request, res: Response) => {
   const db = getDb()
   const bodyKey = req.body?.tmdbKey as string | undefined
   let key = bodyKey
@@ -134,7 +149,7 @@ router.post('/fetch-all', async (req: Request, res: Response) => {
     db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run('tmdb_key', bodyKey)
   }
 
-  const series = db.prepare('SELECT id, title, poster FROM series ORDER BY title').all() as any[]
+  const series = db.prepare('SELECT id, title, poster FROM series ORDER BY title').all() as SeriesRow[]
   let found = 0
   for (const s of series) {
     if (s.poster) continue
@@ -142,6 +157,6 @@ router.post('/fetch-all', async (req: Request, res: Response) => {
     if (url) found++
   }
   res.json({ found, total: series.length })
-})
+}))
 
 export default router

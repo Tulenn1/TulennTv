@@ -49,7 +49,11 @@ function findSubtitles(videoPath: string, dirFiles: string[]): string {
     : ''
 }
 
-export async function scanDirectory(dirPath: string, forceType?: string): Promise<{ series: any[]; episodes: any[] }> {
+interface ScanSeries { id: string; title: string; type: string; path: string; poster: string; addedAt: string }
+interface ScanEpisode { id: string; seriesId: string; title: string; cleanTitle?: string; path: string; season: number; episode: number; duration: number; subtitles: string }
+interface ScanResult { series: ScanSeries[]; episodes: ScanEpisode[] }
+
+export async function scanDirectory(dirPath: string, forceType?: string): Promise<ScanResult> {
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Directory not found: ${dirPath}`)
   }
@@ -68,8 +72,8 @@ export async function scanDirectory(dirPath: string, forceType?: string): Promis
       catch { return false }
     })
 
-    const allSeries: any[] = []
-    const allEpisodes: any[] = []
+    const allSeries: ScanSeries[] = []
+    const allEpisodes: ScanEpisode[] = []
 
     for (const subdir of subdirs) {
       const subPath = path.join(dirPath, subdir)
@@ -83,7 +87,7 @@ export async function scanDirectory(dirPath: string, forceType?: string): Promis
 
   const dirName = path.basename(dirPath)
   const seriesId = uuid()
-  const episodes: any[] = []
+  const episodes: ScanEpisode[] = []
   const poster = findPoster(dirPath, dirName)
 
   const parsed = await Promise.all(videoFiles.map(async (file) => {
@@ -131,7 +135,9 @@ export async function scanDirectory(dirPath: string, forceType?: string): Promis
   return { series: [series], episodes }
 }
 
-export async function scanAndImport(dirPath: string, type?: string): Promise<any[]> {
+interface SeriesImportRow { id: string; title: string; type: string; path: string; poster: string; addedAt: string }
+
+export async function scanAndImport(dirPath: string, type?: string): Promise<SeriesImportRow[]> {
   const result = await scanDirectory(dirPath, type)
   const db = getDb()
 
@@ -148,11 +154,11 @@ export async function scanAndImport(dirPath: string, type?: string): Promise<any
   })
   transaction()
 
-  const ids = result.series.map((s: any) => s.id)
+  const ids = result.series.map(s => s.id)
   return ids.map((id: string) => {
-    const s = db.prepare('SELECT id, title, type, path, poster, added_at as addedAt FROM series WHERE id = ?').get(id) as any
+    const s = db.prepare('SELECT id, title, type, path, poster, added_at as addedAt FROM series WHERE id = ?').get(id) as SeriesImportRow | undefined
     if (!s) return null
     const episodes = db.prepare('SELECT id, series_id as seriesId, title, path, season, episode, duration, subtitles FROM episodes WHERE series_id = ? ORDER BY season ASC, episode ASC').all(id)
-    return { ...s, episodes, favorite: false }
-  }).filter(Boolean)
+    return { ...s, episodes, favorite: false } as SeriesImportRow & { episodes: unknown[]; favorite: boolean }
+  }).filter(Boolean) as SeriesImportRow[]
 }

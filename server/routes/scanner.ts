@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import fs from 'fs'
 import { scanAndImport } from '../scanner'
+import { asyncHandler } from '../utils/async-handler'
 import { getDb } from '../database'
 
 const router = Router()
@@ -29,7 +30,7 @@ router.get('/status', (_req: Request, res: Response) => {
   res.json(scanState)
 })
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', asyncHandler(async (req: Request, res: Response) => {
   const rawPath = req.body.path as string | undefined
   const type = req.body.type as string | undefined
   if (!rawPath) {
@@ -48,12 +49,13 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const result = await scanAndImport(scanPath, type)
     scanState = { status: 'done', progress: { current: result.length, total: result.length } }
-  } catch (err: any) {
-    scanState = { status: 'error', progress: { current: 0, total: 0 }, error: err.message }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    scanState = { status: 'error', progress: { current: 0, total: 0 }, error: message }
   }
-})
+}))
 
-router.post('/directory', async (req: Request, res: Response) => {
+router.post('/directory', asyncHandler(async (req: Request, res: Response) => {
   const rawPath = req.body.path as string | undefined
   const type = req.body.type as string | undefined
   if (!rawPath) {
@@ -72,9 +74,10 @@ router.post('/directory', async (req: Request, res: Response) => {
   try {
     const result = await scanAndImport(dirPath, type)
     scanState = { status: 'done', progress: { current: result.length, total: result.length } }
-  } catch (err: any) {
-    scanState = { status: 'error', progress: { current: 0, total: 0 }, error: err.message }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    scanState = { status: 'error', progress: { current: 0, total: 0 }, error: message }
   }
-})
+}))
 
 export default router

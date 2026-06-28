@@ -31,8 +31,9 @@ router.post('/init-folder', (req: Request, res: Response) => {
     const db = getDb()
     db.prepare("INSERT OR REPLACE INTO app_session (key, value) VALUES (?, ?)").run('media_folder', folderPath)
     res.json({ success: true, path: folderPath, created: true })
-  } catch (err: any) {
-    res.status(500).json({ error: 'CREATE_FAILED', message: err.message })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    res.status(500).json({ error: 'CREATE_FAILED', message })
   }
 })
 
