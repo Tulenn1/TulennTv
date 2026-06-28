@@ -1,8 +1,12 @@
 # TulennTv
 
-App tipo TV que simula **zapping** con archivos locales de anime, series y películas.
-Corre como servidor en un notebook Windows y se accede desde cualquier dispositivo
-(Smart TV, tablet, celular, PC) solo con un navegador.
+**TulennTv** transforma cualquier computadora en un servidor de streaming personal para ver anime, series y películas desde cualquier dispositivo de la red local (Smart TV, tablet, celular, PC) sin necesidad de instalar nada en los clientes — solo un navegador.
+
+## Cómo funciona
+
+Es una aplicación **server-centric**: un servidor central (puede ser un notebook, una PC de escritorio, una Raspberry Pi o cualquier máquina con Node.js) ejecuta la app y sirve el contenido vía web a toda la red local. Los archivos de video se almacenan localmente en el servidor y se transmiten por streaming HTTP con soporte de Range headers.
+
+Cada carpeta de series se convierte automáticamente en un **canal de TV**: el usuario puede hacer zapping entre canales, la reproducción es continua (al terminar un episodio sigue el siguiente) y el progreso se guarda por perfil.
 
 ## Stack
 
@@ -10,19 +14,18 @@ Corre como servidor en un notebook Windows y se accede desde cualquier dispositi
 |------|-----------|
 | Servidor | **Node.js + Express** |
 | Frontend | **React + TypeScript** (SPA) |
-| Clientes | Cualquier navegador |
+| Clientes | Cualquier navegador moderno |
 | Streaming | HTML5 Video + HTTP Range headers |
-| Posters | **TMDB API** (opcional, gratis) |
+| Posters | **TMDB API** (opcional, gratuita) |
 | Persistencia | **SQLite** (better-sqlite3) |
+| PWA | Instalable como app en dispositivos |
 
 ## Requisitos
 
 - Node.js 18+
 - npm 9+
 
-## Instalación y uso
-
-### En el servidor (notebook Windows)
+## Instalación
 
 ```bash
 git clone https://github.com/Tulenn1/TulennTv.git
@@ -31,59 +34,54 @@ npm install
 npm run build
 ```
 
-**Inicio manual:**
+### Inicio manual
+
 ```bash
 npm start
-# o doble clic en scripts/start-server.bat
 ```
 
-**Auto-inicio (opcional):**
+En Windows también se puede iniciar con doble clic en `scripts/start-server.bat`.
+
+### Inicio automático (Windows)
+
+El servidor puede configurarse para arrancar automáticamente al iniciar sesión. Ejecutar en PowerShell como Administrador:
+
 ```powershell
-# PowerShell como Administrador
-.\scripts\firewall.ps1
-.\scripts\install-service.ps1
+.\scripts\firewall.ps1     # Abre puerto 3456 en el firewall
+.\scripts\install-service.ps1   # Crea tarea programada de inicio automático
 ```
 
-### En los clientes (Smart TV, tablet, celular)
+### Acceso desde clientes
 
-Solo abrí el navegador y entrá a:
+Una vez iniciado, desde cualquier dispositivo en la misma red local abrir:
+
 ```
 http://<IP-del-servidor>:3456
 ```
 
-La IP se muestra en la consola al iniciar el servidor.
-
-## Cómo usarlo
-
-1. **Creá un perfil** — al entrar desde el navegador
-2. **Configurá la carpeta principal** en la sección **Carpetas**
-3. **Escaneá** — la app detecta automáticamente todas las subcarpetas
-4. **Biblioteca** — explorá tus series agrupadas por categoría
-5. **Zapping** — navegá entre episodios con ← →, cambiá de canal con ↑
+La IP se muestra en la consola al iniciar el servidor. También se puede escanear el código QR desde la sección **Conectar** de la app.
 
 ## Organización de archivos
 
-Cada **subcarpeta = una serie / un canal**.
-Los **archivos de video adentro = episodios**.
+Cada **subcarpeta** dentro de la carpeta de contenido se convierte en un **canal**. Los archivos de video dentro de cada subcarpeta se detectan como **episodios**.
 
 ```
-📁 CarpetaPrincipal/
+📁 Contenido/
    ├── 📁 Naruto/               ← se convierte en un canal
    │   ├── Naruto Ep 01.mp4     ← episodio 1
    │   ├── Naruto Ep 02.mkv
    │   └── poster.jpg           ← carátula (opcional)
    ├── 📁 One Piece/             ← otro canal
-   │   └── [Subs] OP - 001.mkv  ← formato anime
+   │   └── [Subs] OP - 001.mkv
    └── 📁 Shingeki/
        └── Shingeki S01E01.mkv
 ```
 
-**Formatos de video:** `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.m4v`, `.wmv`, `.flv`
+**Formatos de video soportados:** `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.m4v`, `.wmv`, `.flv`
 
 **Detección de episodios:** `S01E01`, `Ep 01`, `Capítulo 1`, `- 01`, `[01]`, `[Grupo] Nombre - 01 [1080p]`
 
-**Posters:** Colocá `poster.jpg`, `cover.png` o `folder.jpg` dentro de la carpeta de la serie.
-Opción: configurar API key de TMDB para obtener carátulas automáticamente.
+**Posters:** Colocar `poster.jpg`, `cover.png` o `folder.jpg` dentro de la carpeta de la serie. Opcionalmente se puede configurar una API key de TMDB para obtener carátulas automáticamente.
 
 ## Controles (modo zapping)
 
@@ -94,20 +92,28 @@ Opción: configurar API key de TMDB para obtener carátulas automáticamente.
 | ↓ | Descripción de la serie |
 | Espacio | Play / Pausa |
 | F | Pantalla completa |
+| G | Guía de canales |
+| I | Información de la serie |
 | ESC | Volver a biblioteca |
 
 ## Características
 
 - **Biblioteca agrupada** por Anime / Series / Películas con conteo
-- **Modal de información** con descripción TMDB + lista de episodios detectados
-- **Cambiar tipo** de serie desde la tarjeta (anime/series/película)
-- **Reanudación** desde el segundo exacto donde lo dejaste
-- **Rotación automática** al terminar todos los episodios
+- **Zapping tipo TV** con navegación por canales, rotación automática y reproducción continua
+- **Guía de canales** con grilla de programación y línea de tiempo en vivo
+- **Modal de información** con sinopsis TMDB + lista de episodios
+- **Reanudación de reproducción** desde el segundo exacto donde se dejó
 - **Perfiles múltiples** con historial y favoritos independientes
-- **Posters desde TMDB** (opcional, requiere API key gratuita)
+- **Gestión de canales** personalizados (orden, icono, series asignadas)
+- **Posters automáticos** vía TMDB API (opcional, gratuita)
+- **Subtítulos** embebidos y externos (.srt, .vtt, .ass)
+- **PWA** instalable como aplicación en Smart TV, celular y tablet
 - **Carpeta centralizada** con explorador visual de directorios
+- **Auto-inicio** como servicio de Windows
+- **Backup automático** de la base de datos cada 24 horas
+- **Detección de IP local** y registro mDNS (`tulenntv.local`)
 
-## Arquitectura
+## Arquitectura del proyecto
 
 ```
 TulennTv/
@@ -120,6 +126,9 @@ TulennTv/
 │   ├── streamer.ts       # Streaming HTTP Range
 │   ├── channels.ts       # Canales automáticos
 │   ├── backup.ts         # Backup automático
+│   ├── detector.ts       # Duración real de video
+│   ├── mdns.ts           # Registro .local
+│   ├── firewall.ts       # Apertura de puertos
 │   ├── utils/network.ts  # IP local
 │   └── routes/
 │       ├── profiles.ts   # Perfiles
@@ -133,15 +142,20 @@ TulennTv/
 │       ├── video.ts      # Streaming
 │       ├── poster.ts     # Posters + TMDB
 │       ├── settings.ts   # Configuración
-│       └── browse.ts     # Explorador archivos
+│       ├── browse.ts     # Explorador archivos
+│       ├── subtitles.ts  # Subtítulos
+│       └── connect.ts    # Conexión remota
 ├── src/                  # Frontend React
 │   ├── pages/            # ProfileSelector, Library, Zapper,
 │   │                     # Guide, Channels, Folders, TvConnect
-│   ├── components/       # Player, SeriesCard, ZapperOverlay...
+│   ├── components/       # Player, SeriesCard, ZapperOverlay,
+│   │                     # PlayerControls, FaqModal
+│   ├── context/          # AppContext, ThemeContext
 │   ├── lib/api.ts        # Capa HTTP
-│   └── context/AppContext.tsx
-├── scripts/              # start-server.bat, install-service.ps1, firewall.ps1
-├── docs/pipeline/        # Plan, specs y tareas
+│   └── shared/types.ts   # Tipos compartidos
+├── scripts/              # start-server.bat, install-service.ps1,
+│                         # firewall.ps1, build-dist.bat, update.bat
+├── docs/pipeline/        # Plan, especificaciones y tareas
 └── agents-stack/         # Agentes opencode
 ```
 
@@ -149,33 +163,16 @@ TulennTv/
 
 | Comando / Script | Descripción |
 |-----------------|-------------|
-| `npm run dev` | Desarrollo (Vite + servidor hot-reload) |
+| `npm run dev` | Desarrollo con hot-reload |
 | `npm run build` | Compila frontend React |
 | `npm start` | Inicia servidor en producción |
 | `npm test` | Ejecuta tests (Jest) |
-| `scripts\update.bat` | Actualiza la app (git pull + npm install + build) |
-| `scripts\start-server.bat` | Inicio rápido con doble clic |
-| `scripts\build-dist.bat` | Genera carpeta portable para distribuir |
-| `scripts\install-service.ps1` | Instala como servicio de Windows (auto-inicio) |
+| `scripts\start-server.bat` | Inicio rápido en Windows |
+| `scripts\install-service.ps1` | Instala como servicio de Windows |
 | `scripts\firewall.ps1` | Abre puerto 3456 en firewall |
+| `scripts\build-dist.bat` | Genera carpeta portable para distribuir |
+| `scripts\update.bat` | Actualiza la app desde GitHub |
 
-## Actualizar la app
+## Licencia
 
-Cuando haya nuevas versiones en GitHub, ejecutá:
-
-```batch
-scripts\update.bat
-```
-
-Esto descarga los cambios, instala dependencias nuevas y recompila el frontend automáticamente.
-Si el servidor estaba corriendo, reinicialo después con `npm start` o `start-server.bat`.
-
-## Arquitectura
-
-## Pipeline de desarrollo (opencode)
-
-```
-/planner → /spec → /tasks → /implement-all → /pr-ready
-```
-
-Ver `AGENTS.md` para más detalles.
+MIT
