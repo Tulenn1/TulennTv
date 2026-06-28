@@ -115,6 +115,8 @@ export default function Folders() {
   const [showSettings, setShowSettings] = useState(false)
   const [tmdbKey, setTmdbKey] = useState('')
   const [posterStatus, setPosterStatus] = useState('')
+  const [initStatus, setInitStatus] = useState('')
+  const [defaultFolder, setDefaultFolder] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -197,6 +199,29 @@ export default function Folders() {
     }
   }
 
+  const handleInitFolder = async () => {
+    setInitStatus('Creando carpeta...')
+    try {
+      const res = await api.initDefaultFolder()
+      setMediaFolder(res.path)
+      setDefaultFolder('')
+      setInitStatus(res.created ? '✅ Carpeta creada. Escaneando...' : '✅ Carpeta lista. Escaneando...')
+      const scanResult = await api.scanDirectory(res.path)
+      if (scanResult.status === 'scanning') await waitForScan()
+      await load()
+      setInitStatus('✅ Listo')
+      setTimeout(() => setInitStatus(''), 3000)
+    } catch (err: any) {
+      setInitStatus('❌ Error: ' + err.message)
+    }
+  }
+
+  useEffect(() => {
+    if (!mediaFolder) {
+      api.getDefaultFolder().then(setDefaultFolder).catch(() => {})
+    }
+  }, [mediaFolder])
+
   return (
     <div style={styles.container}>
       <div style={styles.sidebar} className="sidebar">
@@ -262,6 +287,26 @@ export default function Folders() {
                   setEditingFolder(true)
                 }}>✏️</button>
               </div>
+            </div>
+          )}
+
+          {!mediaFolder && defaultFolder && (
+            <div style={{ marginTop: 16 }}>
+              <button
+                style={{ ...styles.btn, background: '#e50914', fontSize: 14, padding: '12px 24px' }}
+                onClick={handleInitFolder}
+                disabled={!!initStatus && initStatus.includes('...')}
+              >
+                📁 Crear carpeta de contenido
+              </button>
+              <p style={{ fontSize: 12, color: '#888', marginTop: 8 }}>
+                Se creará en: <code style={{ background: '#0f0f0f', padding: '2px 6px', borderRadius: 4 }}>{defaultFolder}</code>
+              </p>
+              {initStatus && (
+                <p style={{ fontSize: 13, color: initStatus.includes('✅') ? '#46d369' : initStatus.includes('❌') ? '#e50914' : '#ffa500', marginTop: 6 }}>
+                  {initStatus}
+                </p>
+              )}
             </div>
           )}
 

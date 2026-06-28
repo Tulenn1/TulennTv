@@ -175,6 +175,15 @@ export const api = {
     return res.path
   },
 
+  async getDefaultFolder(): Promise<string> {
+    const res = await fetchApi<{ path: string }>('/api/settings/default-folder')
+    return res.path
+  },
+
+  async initDefaultFolder(): Promise<{ path: string; created: boolean }> {
+    return fetchApi('/api/settings/init-folder', { method: 'POST' })
+  },
+
   async getTmdbKey(): Promise<string> {
     const res = await fetchApi<{ key: string }>('/api/settings/tmdb-key')
     return res.key
