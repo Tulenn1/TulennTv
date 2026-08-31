@@ -87,7 +87,7 @@ export default function ChannelsPage() {
           <button style={styles.navBtnActive}>Canales</button>
           <button style={styles.navBtn} onClick={() => navigate('/tv-connect')}>Conectar</button>
         </div>
-        <div style={{ marginTop: 'auto', fontSize: 12, color: '#555' }}>{profile?.name} {profile?.avatar}</div>
+        <div style={{ marginTop: 'auto', fontSize: 12, color: 'var(--text-muted)' }}>{profile?.name} {profile?.avatar}</div>
       </div>
 
       <div style={styles.main} className="main">
@@ -108,13 +108,13 @@ export default function ChannelsPage() {
                 {ICONS.map(ic => <option key={ic} value={ic}>{ic}</option>)}
               </select>
             </div>
-            <p style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>Series en este canal:</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>Series en este canal:</p>
             <div style={styles.seriesList}>
               {allSeries.map(s => (
                 <label key={s.id} style={styles.seriesItem}>
-                  <input type="checkbox" checked={formSeries.includes(s.id)} onChange={() => toggleSeries(s.id)} style={{ accentColor: '#e50914' }} />
+                  <input type="checkbox" checked={formSeries.includes(s.id)} onChange={() => toggleSeries(s.id)} style={{ accentColor: 'var(--accent)' }} />
                   <span>{s.title}</span>
-                  <span style={{ fontSize: 11, color: '#666', marginLeft: 'auto' }}>{s.type}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>{s.type}</span>
                 </label>
               ))}
             </div>
@@ -135,7 +135,7 @@ export default function ChannelsPage() {
                 {ch.type === 'custom' && (
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button style={styles.smallBtn} onClick={() => handleEdit(ch)}>✏️</button>
-                    <button style={{ ...styles.smallBtn, color: '#e50914' }} onClick={() => handleDelete(ch.id)}>✕</button>
+                    <button style={{ ...styles.smallBtn, color: 'var(--accent)' }} onClick={() => handleDelete(ch.id)}>✕</button>
                   </div>
                 )}
               </div>
@@ -144,7 +144,7 @@ export default function ChannelsPage() {
                   const s = allSeries.find(x => x.id === sid)
                   return s ? <span key={sid} style={styles.seriesTag}>{s.title}</span> : null
                 })}
-                {ch.seriesIds.length === 0 && <span style={{ color: '#555', fontSize: 13 }}>Sin series</span>}
+                {ch.seriesIds.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Sin series</span>}
               </div>
             </div>
           ))}
@@ -155,32 +155,32 @@ export default function ChannelsPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { display: 'flex', height: '100vh', background: 'var(--bg-primary)', color: '#fff' },
-  sidebar: { width: 200, background: 'var(--bg-secondary)', padding: 20, display: 'flex', flexDirection: 'column', gap: 24, borderRight: '1px solid #1f1f1f' },
-  logo: { fontSize: 20, fontWeight: 800, color: '#e50914' },
+  container: { display: 'flex', height: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' },
+  sidebar: { width: 200, background: 'var(--bg-secondary)', padding: 20, display: 'flex', flexDirection: 'column', gap: 24, borderRight: '1px solid var(--sidebar-border)' },
+  logo: { fontSize: 20, fontWeight: 800, color: 'var(--accent)' },
   nav: { display: 'flex', flexDirection: 'column', gap: 4 },
-  navBtn: { padding: '10px 16px', background: 'transparent', color: '#a0a0a0', borderRadius: 6, textAlign: 'left', fontSize: 14 },
-  navBtnActive: { padding: '10px 16px', background: 'var(--bg-card)', color: '#fff', borderRadius: 6, textAlign: 'left', fontSize: 14, fontWeight: 600 },
+  navBtn: { padding: '10px 16px', background: 'transparent', color: 'var(--text-secondary)', borderRadius: 6, textAlign: 'left', fontSize: 14 },
+  navBtnActive: { padding: '10px 16px', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: 6, textAlign: 'left', fontSize: 14, fontWeight: 600 },
   main: { flex: 1, padding: 24, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 16 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 28, fontWeight: 700 },
-  addBtn: { padding: '8px 20px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#a0a0a0', background: 'var(--bg-primary)' },
+  addBtn: { padding: '8px 20px', background: 'var(--accent)', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)', background: 'var(--bg-primary)' },
   modal: { background: 'var(--bg-card)', borderRadius: 8, padding: 16, display: 'flex', flexDirection: 'column', gap: 8 },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  closeBtn: { background: 'transparent', border: 'none', color: '#a0a0a0', fontSize: 18, cursor: 'pointer' },
-  input: { padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid #333', borderRadius: 6, color: '#fff', fontSize: 14, flex: 1 },
-  iconSelect: { padding: '8px', background: 'var(--bg-secondary)', border: '1px solid #333', borderRadius: 6, color: '#fff', fontSize: 18 },
+  closeBtn: { background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 18, cursor: 'pointer' },
+  input: { padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 14, flex: 1 },
+  iconSelect: { padding: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 18 },
   seriesList: { display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 200, overflow: 'auto' },
   seriesItem: { display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 4, fontSize: 13, cursor: 'pointer' },
-  saveBtn: { padding: '10px', background: '#e50914', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 14, marginTop: 8 },
+  saveBtn: { padding: '10px', background: 'var(--accent)', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 14, marginTop: 8 },
   channelList: { display: 'flex', flexDirection: 'column', gap: 8 },
   channelCard: { background: 'var(--bg-card)', borderRadius: 8, padding: 14, display: 'flex', flexDirection: 'column', gap: 8 },
   channelHeader: { display: 'flex', alignItems: 'center', gap: 12 },
   channelName: { fontSize: 16, fontWeight: 600, marginRight: 8 },
-  channelBadge: { padding: '2px 8px', borderRadius: 10, fontSize: 10, background: '#333', color: '#888' },
-  seriesCount: { fontSize: 12, color: '#888', marginRight: 8 },
-  smallBtn: { background: '#333', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: 12, cursor: 'pointer' },
+  channelBadge: { padding: '2px 8px', borderRadius: 10, fontSize: 10, background: 'var(--btn-secondary)', color: 'var(--btn-secondary-text)' },
+  seriesCount: { fontSize: 12, color: 'var(--text-muted)', marginRight: 8 },
+  smallBtn: { background: 'var(--btn-secondary)', border: 'none', color: 'var(--btn-secondary-text)', padding: '4px 8px', borderRadius: 4, fontSize: 12, cursor: 'pointer' },
   channelSeries: { display: 'flex', flexWrap: 'wrap', gap: 6 },
-  seriesTag: { padding: '3px 10px', background: 'var(--bg-secondary)', borderRadius: 12, fontSize: 12, color: '#aaa' },
+  seriesTag: { padding: '3px 10px', background: 'var(--bg-secondary)', borderRadius: 12, fontSize: 12, color: 'var(--text-secondary)' },
 }

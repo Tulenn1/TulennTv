@@ -134,7 +134,7 @@ export default function Library() {
           <button style={styles.navBtn} onClick={() => navigate('/folders')}>Carpetas</button>
           <button style={styles.navBtn} onClick={() => navigate('/tv-connect')}>Conectar</button>
         </div>
-        <div style={{ marginTop: 'auto', fontSize: 12, color: '#555' }}>
+        <div style={{ marginTop: 'auto', fontSize: 12, color: 'var(--text-muted)' }}>
           {profile?.name} {profile?.avatar}
         </div>
       </div>
@@ -166,7 +166,7 @@ export default function Library() {
           <button style={styles.folderBtn} onClick={handlePickFolder}>
             📁 Elegir carpeta
           </button>
-          <span style={{ color: '#555', fontSize: 13, alignSelf: 'center' }}>o</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 13, alignSelf: 'center' }}>o</span>
           <input
             style={{ ...styles.searchInput, flex: 1 }}
             placeholder="Escribe la ruta manualmente (ej: /media/Anime)"
@@ -193,8 +193,8 @@ export default function Library() {
           <div style={styles.loading}>Cargando biblioteca...</div>
         ) : series.length === 0 ? (
           <div style={styles.empty}>
-            <p style={{ fontSize: 18, color: '#a0a0a0' }}>No hay series en la biblioteca</p>
-            <p style={{ fontSize: 14, color: '#666', marginTop: 8 }}>Escanea una carpeta para empezar</p>
+            <p style={{ fontSize: 18, color: 'var(--text-secondary)' }}>No hay series en la biblioteca</p>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8 }}>Escanea una carpeta para empezar</p>
           </div>
         ) : filter !== 'all' ? (
           <div style={styles.grid} className="grid">
@@ -254,7 +254,7 @@ export default function Library() {
                 {overview ? (
                   <p style={styles.modalDesc}>{overview}</p>
                 ) : (
-                  <p style={{ ...styles.modalDesc, color: '#666' }}>Cargando información...</p>
+                  <p style={{ ...styles.modalDesc, color: 'var(--text-muted)' }}>Cargando información...</p>
                 )}
                 {episodes.length > 0 && (
                   <div style={styles.episodeList}>
@@ -286,39 +286,39 @@ export default function Library() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { display: 'flex', height: '100vh', background: 'var(--bg-primary)', color: '#fff' },
+  container: { display: 'flex', height: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' },
   sidebar: { width: 200, background: 'var(--bg-secondary)', padding: 20, display: 'flex', flexDirection: 'column', gap: 24, borderRight: '1px solid var(--sidebar-border)' },
-  logo: { fontSize: 20, fontWeight: 800, color: '#e50914', letterSpacing: -0.5 },
+  logo: { fontSize: 20, fontWeight: 800, color: 'var(--accent)', letterSpacing: -0.5 },
   nav: { display: 'flex', flexDirection: 'column', gap: 4 },
-  navBtn: { padding: '10px 16px', background: 'transparent', color: '#a0a0a0', borderRadius: 6, textAlign: 'left', fontSize: 14 },
-  navBtnActive: { padding: '10px 16px', background: 'var(--bg-card)', color: '#fff', borderRadius: 6, textAlign: 'left', fontSize: 14, fontWeight: 600 },
+  navBtn: { padding: '10px 16px', background: 'transparent', color: 'var(--text-secondary)', borderRadius: 6, textAlign: 'left', fontSize: 14 },
+  navBtnActive: { padding: '10px 16px', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: 6, textAlign: 'left', fontSize: 14, fontWeight: 600 },
   main: { flex: 1, padding: 24, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 16 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 },
   title: { fontSize: 28, fontWeight: 700 },
   controls: { display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' },
-  searchInput: { padding: '8px 14px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: '#fff', fontSize: 14, minWidth: 200 },
+  searchInput: { padding: '8px 14px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 14, minWidth: 200 },
   filters: { display: 'flex', gap: 4 },
-  filterBtn: { padding: '6px 14px', background: 'var(--bg-card)', color: '#a0a0a0', borderRadius: 20, fontSize: 13 },
-  filterActive: { padding: '6px 14px', background: '#e50914', color: '#fff', borderRadius: 20, fontSize: 13, fontWeight: 600 },
+  filterBtn: { padding: '6px 14px', background: 'var(--bg-card)', color: 'var(--text-secondary)', borderRadius: 20, fontSize: 13 },
+  filterActive: { padding: '6px 14px', background: 'var(--accent)', color: '#fff', borderRadius: 20, fontSize: 13, fontWeight: 600 },
   scanBar: { display: 'flex', gap: 8, flexWrap: 'wrap' },
-  folderBtn: { padding: '8px 18px', background: 'var(--bg-card)', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14, border: '1px solid var(--border)', whiteSpace: 'nowrap' as const },
-  typeSelect: { padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: '#fff', fontSize: 14, cursor: 'pointer' },
-  scanBtn: { padding: '8px 20px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
+  folderBtn: { padding: '8px 18px', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: 8, fontWeight: 600, fontSize: 14, border: '1px solid var(--border)', whiteSpace: 'nowrap' as const },
+  typeSelect: { padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 14, cursor: 'pointer' },
+  scanBtn: { padding: '8px 20px', background: 'var(--accent)', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
   sections: { display: 'flex', flexDirection: 'column', gap: 24 },
   sectionHeader: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--sidebar-border)' },
   sectionIcon: { fontSize: 20 },
   sectionTitle: { fontSize: 18, fontWeight: 700 },
-  sectionCount: { fontSize: 13, color: '#888', fontWeight: 400 },
+  sectionCount: { fontSize: 13, color: 'var(--text-muted)', fontWeight: 400 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 },
-  error: { padding: '10px 16px', background: '#2a1010', border: '1px solid #e50914', borderRadius: 8, color: '#f88', fontSize: 13 },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#a0a0a0' },
+  error: { padding: '10px 16px', background: '#2a1010', border: '1px solid var(--accent)', borderRadius: 8, color: '#f88', fontSize: 13 },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'var(--text-secondary)' },
   empty: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 },
   modalOverlay: {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
     background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
   },
   modal: {
-    background: '#1a1a1a', borderRadius: 12, maxWidth: 600, width: '100%',
+    background: 'var(--panel-strong)', borderRadius: 12, maxWidth: 600, width: '100%',
     border: '1px solid var(--border)', overflow: 'hidden', position: 'relative' as const,
   },
   modalClose: {
@@ -331,19 +331,19 @@ const styles: Record<string, React.CSSProperties> = {
   modalPlaceholder: {
     width: 160, height: 240, borderRadius: 8, flexShrink: 0,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 64, fontWeight: 800, color: '#333', background: '#0f0f0f',
+    fontSize: 64, fontWeight: 800, color: 'var(--text-muted)', background: 'var(--code-bg)',
   },
   modalInfo: { flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 },
   modalTitle: { fontSize: 22, fontWeight: 700, margin: 0 },
   modalTags: { display: 'flex', gap: 8, flexWrap: 'wrap' },
-  modalTag: { padding: '4px 10px', background: '#0f0f0f', borderRadius: 6, fontSize: 12, color: '#aaa' },
-  modalDesc: { fontSize: 14, color: '#aaa', lineHeight: 1.7, margin: 0, flex: 1 },
-  modalPlayBtn: { padding: '10px 24px', background: '#e50914', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
-  modalCancelBtn: { padding: '10px 24px', background: '#333', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
-  episodeList: { display: 'flex', flexDirection: 'column', gap: 2, background: '#0f0f0f', borderRadius: 6, padding: 8, maxHeight: 160, overflow: 'auto' },
-  episodeListHeader: { fontSize: 12, color: '#888', fontWeight: 600, padding: '4px 6px 8px', borderBottom: '1px solid #222', marginBottom: 4 },
+  modalTag: { padding: '4px 10px', background: 'var(--code-bg)', borderRadius: 6, fontSize: 12, color: 'var(--text-secondary)' },
+  modalDesc: { fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0, flex: 1 },
+  modalPlayBtn: { padding: '10px 24px', background: 'var(--accent)', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 14 },
+  modalCancelBtn: { padding: '10px 24px', background: 'var(--btn-secondary)', color: 'var(--btn-secondary-text)', borderRadius: 8, fontWeight: 600, fontSize: 14 },
+  episodeList: { display: 'flex', flexDirection: 'column', gap: 2, background: 'var(--code-bg)', borderRadius: 6, padding: 8, maxHeight: 160, overflow: 'auto' },
+  episodeListHeader: { fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, padding: '4px 6px 8px', borderBottom: '1px solid var(--border)', marginBottom: 4 },
   episodeRow: { display: 'flex', alignItems: 'center', gap: 8, padding: '3px 6px', fontSize: 12, borderRadius: 4 },
-  epNum: { color: '#e50914', fontWeight: 600, minWidth: 50, fontSize: 11 },
-  epTitle: { flex: 1, color: '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
-  epDur: { color: '#555', fontSize: 11, minWidth: 30, textAlign: 'right' as const },
+  epNum: { color: 'var(--accent)', fontWeight: 600, minWidth: 50, fontSize: 11 },
+  epTitle: { flex: 1, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
+  epDur: { color: 'var(--text-muted)', fontSize: 11, minWidth: 30, textAlign: 'right' as const },
 }

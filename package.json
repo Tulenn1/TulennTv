@@ -1,7 +1,7 @@
 {
   "name": "tulenntv",
   "version": "0.1.0",
-  "description": "TV-like zapping app for local anime/series files",
+  "description": "Servidor de streaming personal tipo TV: zapping de canales, guía EPG, perfiles, subtítulos, posters TMDB, PWA y tema claro/oscuro",
   "author": "Tulenn1 <toloplz12@gmail.com>",
   "bin": "build-server/index.js",
   "scripts": {

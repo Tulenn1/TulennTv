@@ -38,7 +38,7 @@ function MobileNav() {
           key={t.path}
           style={{
             ...mobileNav.tab,
-            color: location.pathname === t.path ? '#e50914' : '#666',
+            color: location.pathname === t.path ? 'var(--accent)' : 'var(--text-muted)',
           }}
           onClick={() => navigate(t.path)}
         >
@@ -53,7 +53,7 @@ function MobileNav() {
 const mobileNav: Record<string, React.CSSProperties> = {
   container: {
     position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
-    background: '#141414', borderTop: '1px solid #333',
+    background: 'var(--bg-secondary)', borderTop: '1px solid var(--border)',
     padding: '6px 0', display: 'flex', justifyContent: 'space-around',
   },
   tab: {

@@ -54,7 +54,7 @@ export default function SeriesCard({ series, onClick, onDelete, onChangeType, fa
               key={t}
               style={{
                 ...styles.typeOption,
-                background: series.type === t ? '#e50914' : 'var(--border)',
+                background: series.type === t ? 'var(--accent)' : 'var(--border)',
               }}
               onClick={(e) => { e.stopPropagation(); onChangeType(t); setShowTypes(false) }}
             >
@@ -74,7 +74,7 @@ const styles: Record<string, React.CSSProperties> = {
   wrapper: { position: 'relative' as const },
   card: {
     background: 'var(--bg-card)', borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
-    border: 'none', padding: 0, textAlign: 'left', color: '#fff',
+    border: 'none', padding: 0, textAlign: 'left', color: 'var(--text-primary)',
     display: 'block', width: '100%',
   },
   thumbnail: { position: 'relative', width: '100%', aspectRatio: '2/3', background: 'var(--bg-secondary)' },
@@ -107,7 +107,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
   },
   typeOption: {
-    padding: '6px 12px', border: 'none', color: '#fff', fontSize: 12,
+    padding: '6px 12px', border: 'none', color: 'var(--text-primary)', fontSize: 12,
     cursor: 'pointer', textAlign: 'left', minWidth: 80,
   },
 }

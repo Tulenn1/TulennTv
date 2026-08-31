@@ -332,24 +332,29 @@ export default function Zapper() {
   if (channels.length === 0) {
     return (
       <div style={styles.empty}>
-        <p style={{ fontSize: 22, color: '#a0a0a0' }}>No hay canales disponibles</p>
-        <p style={{ fontSize: 14, color: '#666', marginTop: 8 }}>Agrega series desde la biblioteca primero</p>
+        <p style={{ fontSize: 22, color: 'var(--text-secondary)' }}>No hay canales disponibles</p>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8 }}>Agrega series desde la biblioteca primero</p>
         <button style={styles.goBtn} onClick={() => navigate('/library')}>Ir a Biblioteca</button>
       </div>
     )
   }
 
   const totalEpsInSeries = currentSeries?.episodes?.length || 0
-  const nextEps = (() => {
+  const nextUp = (() => {
     if (!currentSeries || !epList.length) return undefined
+    const list = currentSeriesList
+    if (list.length > 1) {
+      const nextSeries = list[(seriesIdx + 1) % list.length]
+      const ep = nextSeries?.episodes?.[0]
+      if (ep) return { series: nextSeries.title, season: ep.season, episode: ep.episode, title: ep.title }
+      return undefined
+    }
     const idx = episodeIdx[currentSeries.id] ?? 0
-    if (idx >= epList.length - 1) return undefined
-    return epList.slice(idx + 1, idx + 4).map(e => ({
-      title: e.title,
-      season: e.season,
-      episode: e.episode,
-    }))
+    const ep = epList[idx + 1]
+    if (ep) return { series: currentSeries.title, season: ep.season, episode: ep.episode, title: ep.title }
+    return undefined
   })()
+  const nearEnd = duration > 0 && currentTime >= duration - 30
 
   return (
     <div style={styles.container} onMouseMove={() => {
@@ -381,8 +386,18 @@ export default function Zapper() {
         seriesName={currentSeries?.title || ''}
         currentSeriesIndex={seriesIdx + 1}
         totalSeries={currentSeriesList.length}
-        nextEpisodes={nextEps}
+        nextUp={nextUp}
       />
+
+      {nearEnd && nextUp && (
+        <div style={styles.upNextBanner}>
+          <div style={styles.upNextBannerLabel}>A continuación</div>
+          <div style={styles.upNextBannerTitle}>{nextUp.series}</div>
+          <div style={styles.upNextBannerMeta}>
+            S{nextUp.season}E{nextUp.episode}{nextUp.title ? ` · ${nextUp.title}` : ''}
+          </div>
+        </div>
+      )}
 
       <PlayerControls
         visible={showControls}
@@ -414,7 +429,7 @@ export default function Zapper() {
             {overview ? (
               <p style={styles.infoText}>{overview}</p>
             ) : (
-              <p style={{ ...styles.infoText, color: '#666' }}>Cargando información...</p>
+              <p style={{ ...styles.infoText, color: 'var(--text-muted)' }}>Cargando información...</p>
             )}
             <div style={styles.infoMeta}>
               <span>{currentSeries?.type}</span>
@@ -437,7 +452,7 @@ export default function Zapper() {
                   key={ch.id}
                   style={{
                     ...styles.guideItem,
-                    background: ci === currentChannelIdx ? '#e50914' : 'var(--bg-card)',
+                    background: ci === currentChannelIdx ? 'var(--accent)' : 'rgba(255,255,255,0.08)',
                   }}
                   onClick={() => {
                     setCurrentChannelIdx(ci)
@@ -486,4 +501,14 @@ const styles: Record<string, React.CSSProperties> = {
   guideList: { flex: 1, overflow: 'auto', padding: 8 },
   guideItem: { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', border: 'none', color: '#fff', borderRadius: 6, width: '100%', textAlign: 'left', cursor: 'pointer', fontSize: 15 },
   chNum: { width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', fontSize: 12, fontWeight: 600 },
+  upNextBanner: {
+    position: 'absolute', bottom: 100, right: 24, zIndex: 150,
+    background: 'rgba(10,10,10,0.9)', borderLeft: '4px solid var(--accent)',
+    borderRadius: 8, padding: '12px 16px', maxWidth: 360,
+    display: 'flex', flexDirection: 'column', gap: 2,
+    pointerEvents: 'none' as const, boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+  },
+  upNextBannerLabel: { fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1.5 },
+  upNextBannerTitle: { fontSize: 16, fontWeight: 700, color: '#fff' },
+  upNextBannerMeta: { fontSize: 12, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
 }
