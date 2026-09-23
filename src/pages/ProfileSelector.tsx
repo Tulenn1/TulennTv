@@ -47,7 +47,7 @@ export default function ProfileSelector() {
                 onClick={() => setAvatar(a)}
                 style={{
                   ...styles.avatarBtn,
-                  border: avatar === a ? '2px solid #e50914' : '2px solid transparent',
+                  border: avatar === a ? '2px solid var(--accent)' : '2px solid transparent',
                   transform: avatar === a ? 'scale(1.2)' : 'scale(1)',
                 }}
               >
@@ -95,23 +95,23 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center' as const, maxWidth: 600,
   },
   logo: {
-    fontSize: 48, color: '#e50914', fontWeight: 800, marginBottom: 8, letterSpacing: -1,
+    fontSize: 48, color: 'var(--accent)', fontWeight: 800, marginBottom: 8, letterSpacing: -1,
   },
   subtitle: {
-    color: '#a0a0a0', fontSize: 20, marginBottom: 32,
+    color: 'var(--text-secondary)', fontSize: 20, marginBottom: 32,
   },
   profileBtn: {
     display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 8,
-    background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer',
+    background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer',
     padding: 16, borderRadius: 8, transition: 'background 0.2s',
   },
   profileName: {
-    fontSize: 14, color: '#a0a0a0',
+    fontSize: 14, color: 'var(--text-secondary)',
   },
   input: {
     width: '100%', padding: '12px 16px', fontSize: 16,
-    background: 'var(--bg-card)', border: '1px solid #333', borderRadius: 8,
-    color: '#fff', marginTop: 16,
+    background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8,
+    color: 'var(--text-primary)', marginTop: 16,
   },
   avatarBtn: {
     fontSize: 32, background: 'var(--bg-card)', border: '2px solid transparent',
@@ -119,10 +119,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   btnPrimary: {
     flex: 1, padding: '12px 24px', fontSize: 16, fontWeight: 600,
-    background: '#e50914', color: '#fff', borderRadius: 8, border: 'none',
+    background: 'var(--accent)', color: '#fff', borderRadius: 8, border: 'none',
   },
   btnSecondary: {
     flex: 1, padding: '12px 24px', fontSize: 16, fontWeight: 600,
-    background: '#333', color: '#fff', borderRadius: 8, border: 'none',
+    background: 'var(--btn-secondary)', color: 'var(--btn-secondary-text)', borderRadius: 8, border: 'none',
   },
 }

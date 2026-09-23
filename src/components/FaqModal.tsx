@@ -152,17 +152,17 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center', zIndex: 1000, padding: 20,
   },
   modal: {
-    background: '#141414', borderRadius: 12, width: '100%', maxWidth: 600,
+    background: 'var(--panel-bg)', borderRadius: 12, width: '100%', maxWidth: 600,
     maxHeight: '80vh', display: 'flex', flexDirection: 'column',
-    border: '1px solid #333', overflow: 'hidden',
+    border: '1px solid var(--border)', overflow: 'hidden',
   },
   header: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '16px 20px', borderBottom: '1px solid #333',
+    padding: '16px 20px', borderBottom: '1px solid var(--border)',
   },
-  title: { fontSize: 20, fontWeight: 700, color: '#e50914' },
+  title: { fontSize: 20, fontWeight: 700, color: 'var(--accent)' },
   closeBtn: {
-    background: 'transparent', border: 'none', color: '#a0a0a0',
+    background: 'transparent', border: 'none', color: 'var(--text-secondary)',
     fontSize: 20, cursor: 'pointer', padding: 4,
   },
   body: {
@@ -170,17 +170,17 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex', flexDirection: 'column', gap: 16,
   },
   section: { display: 'flex', flexDirection: 'column', gap: 6 },
-  sectionTitle: { fontSize: 15, fontWeight: 600, color: '#fff' },
-  text: { fontSize: 13, color: '#a0a0a0', lineHeight: 1.6 },
+  sectionTitle: { fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' },
+  text: { fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 },
   code: {
-    background: '#0a0a0a', padding: 10, borderRadius: 6,
-    fontSize: 12, color: '#888', lineHeight: 1.5, overflow: 'auto',
+    background: 'var(--code-bg)', padding: 10, borderRadius: 6,
+    fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, overflow: 'auto',
   },
   shortcuts: { display: 'flex', flexDirection: 'column', gap: 6 },
   shortcutRow: { display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 },
   kbd: {
-    background: '#1f1f1f', padding: '3px 10px', borderRadius: 4,
-    fontSize: 12, fontWeight: 600, color: '#fff', minWidth: 60, textAlign: 'center',
-    border: '1px solid #333',
+    background: 'var(--bg-card)', padding: '3px 10px', borderRadius: 4,
+    fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', minWidth: 60, textAlign: 'center',
+    border: '1px solid var(--border)',
   },
 }

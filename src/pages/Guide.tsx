@@ -121,7 +121,7 @@ export default function Guide() {
           <button style={styles.navBtn} onClick={() => navigate('/folders')}>Carpetas</button>
           <button style={styles.navBtn} onClick={() => navigate('/tv-connect')}>Conectar</button>
         </div>
-        <div style={{ marginTop: 'auto', fontSize: 12, color: '#555' }}>
+        <div style={{ marginTop: 'auto', fontSize: 12, color: 'var(--text-muted)' }}>
           {profile?.name} {profile?.avatar}
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function Guide() {
         {loading ? (
           <div style={styles.loading}>Cargando...</div>
         ) : visibleChannels.length === 0 ? (
-          <div style={styles.empty}><p style={{ fontSize: 18, color: '#a0a0a0' }}>No hay canales</p></div>
+          <div style={styles.empty}><p style={{ fontSize: 18, color: 'var(--text-secondary)' }}>No hay canales</p></div>
         ) : view === 'list' ? (
           <div style={styles.table}>
             <div style={styles.tableHeader}>
@@ -162,7 +162,7 @@ export default function Guide() {
             </div>
             {visibleChannels.map((ch, i) => (
               <div key={ch.id} style={styles.tableRow}>
-                <span style={{ width: 40, color: '#666', fontSize: 13 }}>{i + 1}</span>
+                <span style={{ width: 40, color: 'var(--text-muted)', fontSize: 13 }}>{i + 1}</span>
                 <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 18 }}>{ch.icon}</span> {ch.name}
                 </span>
@@ -170,9 +170,9 @@ export default function Guide() {
                   {ch.seriesIds.map(sid => {
                     const s = allSeries[sid]
                     const isMatch = search && s?.title.toLowerCase().includes(search.toLowerCase())
-                    return s ? <span key={sid} style={{ ...styles.seriesTag, background: isMatch ? 'rgba(229,9,20,0.25)' : 'var(--bg-secondary)', color: isMatch ? '#fff' : '#aaa' }}>{s.title}</span> : null
+                    return s ? <span key={sid} style={{ ...styles.seriesTag, background: isMatch ? 'rgba(229,9,20,0.25)' : 'var(--bg-secondary)', color: isMatch ? '#fff' : 'var(--text-secondary)' }}>{s.title}</span> : null
                   })}
-                  {ch.seriesIds.length === 0 && <span style={{ color: '#555', fontSize: 13 }}>Sin series</span>}
+                  {ch.seriesIds.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Sin series</span>}
                 </span>
                 <span style={{ width: 100, textAlign: 'center' }}>
                   <button style={styles.sintonizar} onClick={() => {
@@ -214,7 +214,7 @@ export default function Guide() {
                     <div style={{ ...styles.channelLabel, background: hasMatch ? 'rgba(229,9,20,0.15)' : 'var(--bg-secondary)' }}>
                       <span>{ch.icon}</span>
                       <span style={{ fontSize: 12 }}>{ch.name}</span>
-                      {hasMatch && <span style={{ fontSize: 9, color: '#e50914', marginLeft: 'auto' }}>●</span>}
+                      {hasMatch && <span style={{ fontSize: 9, color: 'var(--accent)', marginLeft: 'auto' }}>●</span>}
                     </div>
                     <div style={styles.programRow}>
                         {program.map((p, i) => {
@@ -229,7 +229,7 @@ export default function Guide() {
                               ...styles.programBlock,
                               left: `${left}%`,
                               width: `${width}%`,
-                              background: isNow ? '#e50914' : isMatch ? 'rgba(229,9,20,0.25)' : 'var(--bg-card)',
+                              background: isNow ? 'var(--accent)' : isMatch ? 'rgba(229,9,20,0.25)' : 'var(--bg-card)',
                               border: isMatch ? '1px solid rgba(229,9,20,0.5)' : 'none',
                             }}
                             title={`${p.seriesTitle} - ${p.episodeTitle}`}
@@ -258,36 +258,36 @@ export default function Guide() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { display: 'flex', height: '100vh', background: 'var(--bg-primary)', color: '#fff' },
-  sidebar: { width: 200, background: 'var(--bg-secondary)', padding: 20, display: 'flex', flexDirection: 'column', gap: 24, borderRight: '1px solid #1f1f1f' },
-  logo: { fontSize: 20, fontWeight: 800, color: '#e50914' },
+  container: { display: 'flex', height: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' },
+  sidebar: { width: 200, background: 'var(--bg-secondary)', padding: 20, display: 'flex', flexDirection: 'column', gap: 24, borderRight: '1px solid var(--sidebar-border)' },
+  logo: { fontSize: 20, fontWeight: 800, color: 'var(--accent)' },
   nav: { display: 'flex', flexDirection: 'column', gap: 4 },
-  navBtn: { padding: '10px 16px', background: 'transparent', color: '#a0a0a0', borderRadius: 6, textAlign: 'left', fontSize: 14 },
-  navBtnActive: { padding: '10px 16px', background: 'var(--bg-card)', color: '#fff', borderRadius: 6, textAlign: 'left', fontSize: 14, fontWeight: 600 },
+  navBtn: { padding: '10px 16px', background: 'transparent', color: 'var(--text-secondary)', borderRadius: 6, textAlign: 'left', fontSize: 14 },
+  navBtnActive: { padding: '10px 16px', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: 6, textAlign: 'left', fontSize: 14, fontWeight: 600 },
   main: { flex: 1, padding: 24, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 16 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
   title: { fontSize: 28, fontWeight: 700 },
-  searchInput: { padding: '8px 14px', background: 'var(--bg-card)', border: '1px solid #333', borderRadius: 8, color: '#fff', fontSize: 14, minWidth: 200 },
+  searchInput: { padding: '8px 14px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 14, minWidth: 200 },
   viewToggle: { display: 'flex', background: 'var(--bg-card)', borderRadius: 6, overflow: 'hidden' },
-  viewBtn: { padding: '6px 14px', background: 'transparent', color: '#888', border: 'none', fontSize: 13, cursor: 'pointer' },
-  viewActive: { padding: '6px 14px', background: '#e50914', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  seriesTag: { padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: 10, fontSize: 11, color: '#aaa' },
+  viewBtn: { padding: '6px 14px', background: 'transparent', color: 'var(--text-muted)', border: 'none', fontSize: 13, cursor: 'pointer' },
+  viewActive: { padding: '6px 14px', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  seriesTag: { padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: 10, fontSize: 11, color: 'var(--text-secondary)' },
   table: { display: 'flex', flexDirection: 'column', gap: 2 },
-  tableHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', color: '#666', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, borderBottom: '1px solid #1f1f1f' },
+  tableHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', color: 'var(--text-muted)', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, borderBottom: '1px solid var(--sidebar-border)' },
   tableRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 6, fontSize: 15 },
-  sintonizar: { padding: '6px 14px', background: '#e50914', color: '#fff', borderRadius: 6, fontSize: 12, fontWeight: 600 },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#a0a0a0' },
+  sintonizar: { padding: '6px 14px', background: 'var(--accent)', color: '#fff', borderRadius: 6, fontSize: 12, fontWeight: 600 },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: 'var(--text-secondary)' },
   empty: { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 },
   // Grid styles
   gridWrapper: { overflow: 'auto', flex: 1, borderRadius: 8 },
   grid: { minWidth: 600 },
-  gridHeader: { display: 'flex', borderBottom: '1px solid #333', height: 40 },
-  gridCorner: { width: 180, flexShrink: 0, padding: '0 12px', display: 'flex', alignItems: 'center', fontSize: 12, color: '#666', fontWeight: 600 },
-  timeSlot: { width: 140, flexShrink: 0, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#888', borderLeft: '1px solid #222' },
-  nowTick: { position: 'absolute', bottom: -1, left: 0, right: 0, height: 3, background: '#e50914', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  nowLine: { position: 'absolute', top: 0, bottom: 0, width: 2, background: '#e50914', zIndex: 10, pointerEvents: 'none' as const },
-  nowArrow: { position: 'absolute', top: -6, left: -5, width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid #e50914' },
-  gridRow: { display: 'flex', height: 64, borderBottom: '1px solid #141414' },
+  gridHeader: { display: 'flex', borderBottom: '1px solid var(--border)', height: 40 },
+  gridCorner: { width: 180, flexShrink: 0, padding: '0 12px', display: 'flex', alignItems: 'center', fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 },
+  timeSlot: { width: 140, flexShrink: 0, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--text-muted)', borderLeft: '1px solid var(--border)' },
+  nowTick: { position: 'absolute', bottom: -1, left: 0, right: 0, height: 3, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  nowLine: { position: 'absolute', top: 0, bottom: 0, width: 2, background: 'var(--accent)', zIndex: 10, pointerEvents: 'none' as const },
+  nowArrow: { position: 'absolute', top: -6, left: -5, width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid var(--accent)' },
+  gridRow: { display: 'flex', height: 64, borderBottom: '1px solid var(--border)' },
   channelLabel: { width: 180, flexShrink: 0, padding: '0 12px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, background: 'var(--bg-secondary)' },
   programRow: { flex: 1, position: 'relative', overflow: 'visible' as const },
   programBlock: {

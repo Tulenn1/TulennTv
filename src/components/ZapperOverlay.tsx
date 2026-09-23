@@ -1,7 +1,8 @@
-interface NextEpisode {
-  title: string
+interface UpNext {
+  series: string
   season: number
   episode: number
+  title: string
 }
 
 interface Props {
@@ -19,13 +20,13 @@ interface Props {
   seriesName?: string
   currentSeriesIndex?: number
   totalSeries?: number
-  nextEpisodes?: NextEpisode[]
+  nextUp?: UpNext
 }
 
 export default function ZapperOverlay({
   visible, channelName, channelIcon, episodeTitle, season, episode,
   channelNumber, totalChannels, totalEpisodes, currentEpisodeIndex, favorite,
-  seriesName, currentSeriesIndex, totalSeries, nextEpisodes,
+  seriesName, currentSeriesIndex, totalSeries, nextUp,
 }: Props) {
   return (
     <div style={{
@@ -57,16 +58,13 @@ export default function ZapperOverlay({
             )}
           </div>
           <span style={styles.episodeTitle}>{episodeTitle}</span>
-          {nextEpisodes && nextEpisodes.length > 0 && (
-            <div style={styles.queueBox}>
-              <span style={styles.queueLabel}>Próximos:</span>
-              <div style={styles.queueList}>
-                {nextEpisodes.map((ep, i) => (
-                  <span key={i} style={styles.queueItem}>
-                    S{ep.season}E{ep.episode} {ep.title}
-                    {i < nextEpisodes.length - 1 && <span style={{ color: 'rgba(255,255,255,0.4)', margin: '0 4px' }}>→</span>}
-                  </span>
-                ))}
+          {nextUp && (
+            <div style={styles.upNextBox}>
+              <span style={styles.upNextLabel}>A continuación</span>
+              <div style={styles.upNextContent}>
+                <span style={styles.upNextSeries}>{nextUp.series}</span>
+                <span style={styles.upNextMeta}>S{nextUp.season}E{nextUp.episode}</span>
+                {nextUp.title && <span style={styles.upNextTitle}>{nextUp.title}</span>}
               </div>
             </div>
           )}
@@ -98,9 +96,15 @@ const styles: Record<string, React.CSSProperties> = {
   season: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 600 },
   episodeTitle: { fontSize: 16, fontWeight: 600, textShadow: '0 2px 4px rgba(0,0,0,0.8)' },
   epCount: { fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 600 },
-  queueBox: { display: 'flex', flexDirection: 'column', gap: 2, marginTop: 6 },
-  queueLabel: { fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 },
-  queueList: { display: 'flex', flexWrap: 'wrap', gap: 2, fontSize: 12, color: 'rgba(255,255,255,0.8)' },
-  queueItem: { whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 },
+  upNextBox: {
+    display: 'flex', flexDirection: 'column', gap: 3, marginTop: 10,
+    background: 'rgba(0,0,0,0.55)', borderLeft: '3px solid #e50914',
+    borderRadius: 4, padding: '8px 12px', maxWidth: 520,
+  },
+  upNextLabel: { fontSize: 10, color: 'rgba(255,255,255,0.6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5 },
+  upNextContent: { display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', minWidth: 0 },
+  upNextSeries: { fontSize: 15, fontWeight: 700, color: '#fff' },
+  upNextMeta: { fontSize: 12, color: '#e50914', fontWeight: 700 },
+  upNextTitle: { fontSize: 12, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
   hints: { fontSize: 11, color: 'rgba(255,255,255,0.4)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' },
 }
